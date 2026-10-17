@@ -62,6 +62,9 @@ export function createFirestoreBackend({ db, fs, uid, today = '', loadTimeoutMs 
         let first = true;
         const stop = fs.onSnapshot(
           fs.collection(db, name),
+          // Without this, a collection that is empty (or unchanged) and already remembered on this device never
+          // reports "now confirmed by the server", and loading would wait forever.
+          { includeMetadataChanges: true },
           (snap) => {
             const base = BASE_OF[name];
             const c = base || name;
@@ -79,14 +82,19 @@ export function createFirestoreBackend({ db, fs, uid, today = '', loadTimeoutMs 
               if (ch.doc.metadata && ch.doc.metadata.hasPendingWrites) return; // our own write echoing back
               const id = ch.doc.id;
               const removed = ch.type === 'removed';
+              // Metadata-only events ("the server confirmed it") carry the same data we already hold: ignore those.
               if (base) {
-                if (removed) cache(priv, c).delete(id); else cache(priv, c).set(id, ch.doc.data());
+                const mine = cache(priv, c);
+                if (removed ? !mine.has(id) : same(mine.get(id), ch.doc.data())) return;
+                if (removed) mine.delete(id); else mine.set(id, ch.doc.data());
                 const j = joined(c, id);
                 if (j) ops.push({ op: 'set', collection: c, id, data: j });
               } else if (removed) {
+                if (!cache(pub, c).has(id)) return;
                 cache(pub, c).delete(id);
                 ops.push({ op: 'delete', collection: c, id });
               } else {
+                if (same(cache(pub, c).get(id), ch.doc.data())) return;
                 cache(pub, c).set(id, ch.doc.data());
                 ops.push({ op: 'set', collection: c, id, data: joined(c, id) });
               }

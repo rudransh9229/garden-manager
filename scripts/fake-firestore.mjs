@@ -13,7 +13,8 @@ export function createFakeFirestore() {
     doc: (db, name, id) => ({ name, id }),
     async getDocs(ref) { return snapshot(ref.name); },
     async getDoc(ref) { const d = col(ref.name).get(ref.id); return { exists: () => d !== undefined, data: () => d }; },
-    onSnapshot(ref, next, error) {
+    onSnapshot(ref, a, b, c) {
+      const [next, error] = typeof a === 'function' ? [a, b] : [b, c]; // (ref, options, next, error) also accepted
       const db = fs.__db;
       if (db.canRead && !db.canRead(ref.name)) { Promise.resolve().then(() => error && error({ code: 'permission-denied' })); return () => {}; }
       db.touched.push(ref.name);
@@ -56,6 +57,13 @@ export function createFakeFirestore() {
   // each "device" gets its own db handle so the fake can tell whose write is whose
   return {
     store,
+    /** Pretends the server re-confirmed a document without changing it (what includeMetadataChanges reports). */
+    confirm(name, id) {
+      for (const l of listeners.get(name) || []) {
+        const d = col(name).get(id);
+        l.next(snapshot(name, [{ type: 'modified', doc: { id, data: () => JSON.parse(JSON.stringify(d)), metadata: { hasPendingWrites: false } } }]));
+      }
+    },
     seed(name, id, data) { col(name).set(id, JSON.parse(JSON.stringify(data))); },
     device({ canRead, canWrite } = {}) {
       const db = { offline: false, canRead, canWrite, touched: [] };
