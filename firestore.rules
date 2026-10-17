@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function role() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function signedIn() { return request.auth != null; }
+    function isOwner()   { return signedIn() && role() == 'owner'; }
+    function isManager() { return signedIn() && role() == 'manager'; }
+
+    // Each person can read only their own role document. Nobody can change it from the app.
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Money, invoices and private contact details: owners only.
+    match /payments/{id}          { allow read, write: if isOwner(); }
+    match /expenses/{id}          { allow read, write: if isOwner(); }
+    match /cancellations/{id}     { allow read, write: if isOwner(); }
+    match /documents/{id}         { allow read, write: if isOwner(); }
+    match /files/{id}             { allow read, write: if isOwner(); }
+    match /fileParts/{id}         { allow read, write: if isOwner(); }
+    match /clientPrivate/{id}     { allow read, write: if isOwner(); }
+    match /bookingPrivate/{id}    { allow read, write: if isOwner(); }
+    match /staffPrivate/{id}      { allow read, write: if isOwner(); }
+    match /attendancePrivate/{id} { allow read, write: if isOwner(); }
+
+    // Bookings, clients and settings: both can read, only owners can change.
+    match /bookings/{id} { allow read: if isOwner() || isManager(); allow write: if isOwner(); }
+    match /clients/{id}  { allow read: if isOwner() || isManager(); allow write: if isOwner(); }
+    match /settings/{id} { allow read: if isOwner() || isManager(); allow write: if isOwner(); }
+
+    // The manager runs the day: adds staff names and marks attendance.
+    match /staff/{id}      { allow read, write: if isOwner() || isManager(); }
+    match /attendance/{id} { allow read, write: if isOwner() || isManager(); }
+  }
+}
