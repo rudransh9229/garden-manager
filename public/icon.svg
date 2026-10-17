@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#16392B"/>
+  <!-- a garden gate with a flower inside it -->
+  <path d="M158 386V236a98 98 0 0 1 196 0v150" fill="none" stroke="#E3A21A" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M112 386h288" stroke="#E3A21A" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="256.0" cy="224.0" r="19" fill="#FFFDF9"/><circle cx="278.5" cy="237.0" r="19" fill="#FFFDF9"/><circle cx="278.5" cy="263.0" r="19" fill="#FFFDF9"/><circle cx="256.0" cy="276.0" r="19" fill="#FFFDF9"/><circle cx="233.5" cy="263.0" r="19" fill="#FFFDF9"/><circle cx="233.5" cy="237.0" r="19" fill="#FFFDF9"/>
+  <circle cx="256" cy="250" r="14" fill="#E3A21A"/>
+</svg>

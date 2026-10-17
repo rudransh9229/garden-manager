@@ -22,7 +22,7 @@ A private management web app for a marriage garden (wedding venue), used by the 
 ## Non-goals (for now)
 - Public booking site, client logins, online payment gateway.
 - Public sign-ups or SaaS. Only two roles: Owner (family) and Manager.
-- Native mobile app (a responsive web app / PWA is enough).
+- Native App Store / Play Store app (paid, not needed). The app installs from the browser as a PWA (icon, full screen, works offline).
 
 ## Phases
 | Phase | Focus | Status |
@@ -67,6 +67,7 @@ A private management web app for a marriage garden (wedding venue), used by the 
 - `lib/search.js` — understands "Sharma", "4 Nov 2023", "Nov 2023", "2022", phone digits, invoice numbers
 - `lib/files.js` — invoice files: photos are shrunk, size limit, pluggable store (browser IndexedDB now; `backends/firestoreFiles.js` online, 600 KB pieces inside Firestore, 3 MB limit, owner-only)
 - `lib/backup.js`, `lib/zip.js` — zip backup (records.json + invoice files) and restore
+- `public/` — manifest, icons and `sw.js` that make the app installable on phones
 - `lib/dates.js`, `format.js`, `csv.js`, `constants.js` — helpers (money is paise, dates are ISO strings)
 - `data/seed.js` — made-up demo data (6 years). Settings, "Your data" can clear it
 - `lib/sync.js` — turns each change into small writes (diffState), applies them (applyOps), merges them (coalesce)

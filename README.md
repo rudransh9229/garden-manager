@@ -69,6 +69,17 @@ So the family and the manager can open it on their phones.
 
 Every later `git push` to `main` redeploys. If you skip step 4, the site is published in "try it" mode with demo data and no sign-in, so do not skip it before sharing the link.
 
+### 4. Put the icon on every phone
+Once the app is online, nobody needs a computer, VS Code or any command. Send the family and the manager the address, and each person does this once:
+
+- **iPhone (use Safari):** open the address, tap the Share button, choose **Add to Home Screen**, then **Add**.
+- **Android (use Chrome):** open the address, tap the three dots, choose **Install app** (or **Add to Home screen**).
+- **Computer (Chrome or Edge):** open the address and click the install icon at the right end of the address bar.
+
+The app then has its own icon, opens full screen with no browser bar, and opens even with no signal (your records are kept on the device and sync when the signal returns). People sign in once and stay signed in. When a new version is published, it arrives the next time the app is opened with internet.
+
+This is a web app that installs like an app. It is not an App Store or Play Store app: those cost money ($99 a year for Apple, $25 once for Google) and need a separate build, and nothing here needs them.
+
 ## Is it safe to keep this repository public?
 Yes, as long as you follow two rules.
 

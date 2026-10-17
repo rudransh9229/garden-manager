@@ -106,3 +106,10 @@ Update this at the end of every working session. Newest session on top.
 - Repo is PUBLIC by owner's choice. Scanned files for personal info: none besides the licence name.
 - Owner still has to: create the Firebase project (FIREBASE_SETUP.md), create the GitHub repo, push, set Pages source and the four variables, add github.io to Firebase authorized domains. Real Firebase never tested by me; ask for exact errors.
 - Ideas not built: soft-delete/trash for deleted bookings, backup reminder, PWA install icon.
+
+## Session 3 — Installable app (PWA) and first real Firebase run
+- Owner ran FIREBASE_SETUP on real Firebase: sign-in worked. First reload then failed ("records could not be loaded"): with a cached empty collection, onSnapshot never reported server confirmation. Fixed by includeMetadataChanges + ignoring no-change events (firestore.js, new check). Owner confirmed it works after the fix.
+- Owner asked: (1) must every new person be added in the Firebase console? Currently yes (Authentication user + users/<uid> doc with role). (2) wants a tap-the-icon app, not "run commands in VS Code".
+- Built PWA: public/manifest.webmanifest, icons (gate with a flower, made by Claude), sw.js (caches the app's own files only), meta tags in index.html, registration in main.jsx (production only). Verified in Chromium: manifest, icons, service worker controls the page, opens offline. NOT verified on a real iPhone/Android install.
+- README section 4 explains Add to Home Screen. Native store apps explained as paid and not needed.
+- Open question for owner: build an in-app "Team" page so owners add people (email, password, role) without the Firebase console? Needs Firebase sign-up turned ON (rules still give accounts without a role nothing), and rules letting owners write users docs. Not built until owner says yes.

@@ -39,3 +39,8 @@ async function start() {
   );
 }
 start();
+
+// Lets the app open fast and without a signal. Only in the real build, never while developing.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+}
