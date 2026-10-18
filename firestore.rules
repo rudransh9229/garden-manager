@@ -9,10 +9,11 @@ service cloud.firestore {
     function isOwner()   { return signedIn() && role() == 'owner'; }
     function isManager() { return signedIn() && role() == 'manager'; }
 
-    // Each person can read only their own role document. Nobody can change it from the app.
+    // Who can sign in, and as what. Everyone can read their own record; only owners can see or change the rest.
+    // (An account with no record here can read and write nothing at all.)
     match /users/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid;
-      allow write: if false;
+      allow read: if signedIn() && (request.auth.uid == uid || isOwner());
+      allow write: if isOwner();
     }
 
     // Money, invoices and private contact details: owners only.

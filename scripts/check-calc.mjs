@@ -18,6 +18,7 @@ import fsNode from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { makeZip, readZip } from '../src/lib/zip.js';
 import { readBackup } from '../src/lib/backup.js';
+import { createPeopleApi, makePassword } from '../src/lib/backends/people.js';
 import { createFirestoreFileStore } from '../src/lib/backends/firestoreFiles.js';
 
 let failed = 0;
@@ -453,6 +454,43 @@ console.log('Backup zip');
   const named = new File([zip], 'garden-backup.zip');
   const read = await readBackup(named);
   ok(read.files.length === 2 && read.files[0].id === 'd1' && read.files[0].name === 'Invoice 2024-118.pdf', 'a backup is read back with files tied to their invoice ids');
+}
+
+console.log('People page (who can sign in)');
+{
+  const cloud = createFakeFirestore();
+  cloud.seed('users', 'me', { role: 'owner', email: 'me@x.com' });
+  const { db, fs } = cloud.device();
+  const made = [];
+  const people = createPeopleApi({
+    db, fs, selfUid: 'me',
+    createAccount: async (email) => { if (email === 'taken@x.com') throw Object.assign(new Error('x'), { code: 'auth/email-already-in-use' }); made.push(email); return `uid${made.length}`; },
+    sendReset: async () => {},
+  });
+  const a = await people.add({ email: '  Asha@Example.com ', password: 'abc123', role: 'manager' });
+  eq(a.email, 'asha@example.com', 'email is tidied up');
+  eq(cloud.store.get('users').get('uid1').role, 'manager', 'the new person gets their role');
+  const rej = async (fn) => { try { await fn(); return null; } catch (e) { return e.code; } };
+  eq(await rej(() => people.add({ email: 'nope', password: 'abc123', role: 'manager' })), 'people/bad-email', 'a bad email is refused');
+  eq(await rej(() => people.add({ email: 'a@b.com', password: '123', role: 'manager' })), 'people/weak-password', 'a short password is refused');
+  eq(await rej(() => people.add({ email: 'a@b.com', password: 'abc123', role: 'admin' })), 'people/bad-role', 'an unknown role is refused');
+  eq(await rej(() => people.add({ email: 'taken@x.com', password: 'abc123', role: 'manager' })), 'auth/email-already-in-use', 'an email that already has an account is reported');
+  eq(cloud.store.get('users').size, 2, 'a failed sign-up leaves no half-made person');
+  eq((await people.list())[0].uid, 'me', 'owners are listed first');
+  await people.setRole('uid1', 'owner');
+  eq(cloud.store.get('users').get('uid1').email, 'asha@example.com', 'changing a role keeps the rest of the record');
+  eq(await rej(() => people.setRole('me', 'manager')), 'people/self', 'you cannot change your own access');
+  eq(await rej(() => people.removeAccess('me')), 'people/self', 'you cannot remove yourself');
+  await people.removeAccess('uid1');
+  eq(cloud.store.get('users').has('uid1'), false, 'removing access deletes the person’s role');
+  const solo = createPeopleApi({ db, fs, selfUid: 'someone-else', createAccount: async () => 'x', sendReset: async () => {} });
+  eq(await rej(() => solo.removeAccess('me')), 'people/last-owner', 'the last owner can never be removed');
+  eq(await rej(() => solo.setRole('me', 'manager')), 'people/last-owner', 'the last owner can never be made a manager');
+  const pw = makePassword();
+  ok(pw.length === 10 && !/[0O1lI]/.test(pw), 'generated passwords have no look-alike characters');
+  const rules = fsNode.readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
+  const usersRule = (rules.match(/match \/users\/\{uid\}\s*\{([^}]*)\}/) || [])[1] || '';
+  ok(/allow write: if isOwner\(\)/.test(usersRule) && /request\.auth\.uid == uid \|\| isOwner\(\)/.test(usersRule), 'rules: owners manage people, everyone else can read only their own record');
 }
 
 console.log('Import helpers');

@@ -109,6 +109,8 @@ export function StoreProvider({ backend, children }) {
     backendName: backend.name,
     canSwitchRole: backend.canSwitchRole !== false, // with real accounts the role belongs to the account
     account: backend.account || '',
+    people: backend.people || null, // only online, and only used on the People page (owners)
+    uid: backend.uid || '',
     signOut: backend.signOut || null,
     canLoadDemo: backend.name === 'browser', // demo records must never be written into a real database
     startFresh: () => dispatch({ type: 'reset', state: { ...emptyState(stateRef.current.settings, today), role: stateRef.current.role } }),

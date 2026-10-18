@@ -113,3 +113,8 @@ Update this at the end of every working session. Newest session on top.
 - Built PWA: public/manifest.webmanifest, icons (gate with a flower, made by Claude), sw.js (caches the app's own files only), meta tags in index.html, registration in main.jsx (production only). Verified in Chromium: manifest, icons, service worker controls the page, opens offline. NOT verified on a real iPhone/Android install.
 - README section 4 explains Add to Home Screen. Native store apps explained as paid and not needed.
 - Open question for owner: build an in-app "Team" page so owners add people (email, password, role) without the Firebase console? Needs Firebase sign-up turned ON (rules still give accounts without a role nothing), and rules letting owners write users docs. Not built until owner says yes.
+
+## Session 3 — People page (in-app user management)
+- Owner said yes to building it. New: lib/backends/people.js (add/list/setRole/removeAccess/resetPassword, guards: not self, never zero owners, password >= 6), pages/People.jsx (nav 'People and sign-in' under Set up, online mode only), firebase.js creates accounts through a second in-memory auth instance so the owner is not signed out. Rules: /users/{uid} read own or owner, write owner only. 16 new checks; page verified in a browser against a fake Firestore (add, duplicate email message, role change, remove, own row protected, no phone overflow).
+- Owner must (a) turn Firebase 'Enable create (sign-up)' ON, (b) re-paste firestore.rules, then use People page. NOT verified on real Firebase.
+- Limits: removing access does not delete the Firebase Auth account (client SDK cannot); an email that already has an account must be given a role via console; passwords are chosen by the owner and shown once.

@@ -14,6 +14,7 @@ import Staff from './pages/Staff.jsx';
 import Attendance from './pages/Attendance.jsx';
 import Import from './pages/Import.jsx';
 import Settings from './pages/Settings.jsx';
+import People from './pages/People.jsx';
 
 const OWNER_NAV = [
   { group: 'Run the garden', items: [['/', 'Dashboard', 'home'], ['/calendar', 'Calendar', 'calendar'], ['/events', 'Events and search', 'search'], ['/invoices', 'Invoices', 'file']] },
@@ -85,10 +86,12 @@ function Toasts() {
 }
 
 export default function App() {
-  const { state, dispatch, isOwner, canSwitchRole, backendName, account, signOut } = useStore();
+  const { state, dispatch, isOwner, canSwitchRole, backendName, account, signOut, people } = useStore();
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
-  const groups = isOwner ? OWNER_NAV : MANAGER_NAV;
+  const groups = isOwner
+    ? OWNER_NAV.map((g) => (g.group === 'Set up' && people ? { ...g, items: [...g.items, ['/people', 'People and sign-in', 'key']] } : g))
+    : MANAGER_NAV;
   const tabs = isOwner ? OWNER_TABS : MANAGER_TABS;
 
   useEffect(() => { setMenu(false); window.scrollTo(0, 0); }, [pathname]);
@@ -154,6 +157,7 @@ export default function App() {
             <Route path="/staff" element={<Staff />} />
             <Route path="/import" element={<OwnerOnly><Import /></OwnerOnly>} />
             <Route path="/settings" element={<OwnerOnly><Settings /></OwnerOnly>} />
+            {people && <Route path="/people" element={<OwnerOnly><People /></OwnerOnly>} />}
             <Route
               path="*"
               element={

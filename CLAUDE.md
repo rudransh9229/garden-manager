@@ -3,7 +3,7 @@
 Project context file. Read this first at the start of every session, then read `SESSION_HANDOFF.md`.
 
 ## What this is
-A private management web app for a marriage garden (wedding venue), used by the **family owners** and the garden manager. It stores each client's details, documents/invoices, booking dates, costs and payments, tracks revenue and profit, and records which staff worked each event. It is a family tool, not a SaaS product: invite-only accounts, no public sign-up, no multi-tenancy. The garden has run for 6 years, so old data and invoices must be importable and searchable. Scope update (2026-10-16): the owner mainly wants earlier years' invoices kept and new ones added, bookings and booking types that can be added and removed, and old events found by typing a client name or a date. Old years therefore need only a name and a date (price and payments are optional).
+A private management web app for a marriage garden (wedding venue), used by the **family owners** and the garden manager. It stores each client's details, documents/invoices, booking dates, costs and payments, tracks revenue and profit, and records which staff worked each event. It is a family tool, not a SaaS product: accounts are made only by owners (People page); Firebase sign-up is on but an account without a role record sees nothing, no multi-tenancy. The garden has run for 6 years, so old data and invoices must be importable and searchable. Scope update (2026-10-16): the owner mainly wants earlier years' invoices kept and new ones added, bookings and booking types that can be added and removed, and old events found by typing a client name or a date. Old years therefore need only a name and a date (price and payments are optional).
 
 ## Goals
 1. Keep every client's record in one place: details, event date, documents, payments.
@@ -73,6 +73,7 @@ A private management web app for a marriage garden (wedding venue), used by the 
 - `lib/sync.js` — turns each change into small writes (diffState), applies them (applyOps), merges them (coalesce)
 - `lib/writeQueue.js` — saves writes in order, retries with waiting if the connection drops, reports saved/saving/error
 - `lib/backends/` — where data lives: `local.js` (this browser, current), `memory.js` (fake server for checks). `firestore.js` is the real online one (SDK functions are passed in so checks can use `scripts/fake-firestore.mjs`). Contract: load, write, subscribe, optional setRole
+- `lib/backends/people.js` + `pages/People.jsx` — owners add/remove people and change roles in the app (account made via a second in-memory Firebase app so the owner stays signed in; role record at /users/<uid>). Needs Firebase sign-up ON; rules give role-less accounts nothing. Guards: cannot change own access, never zero owners
 - `lib/split.js` — the list of fields the manager must never receive; `firestore.rules` — the database rules built from it (paste into the Firebase console)
 - `lib/firebase.js` — real Firebase wiring; `components/AuthGate.jsx` — sign-in screen and role check. Online mode turns on only when `.env.local` has the Firebase values (see FIREBASE_SETUP.md); otherwise the browser-only prototype runs
 - `store.jsx` — app state; loads from the backend, sends every change through the write queue; `act()` runs a change and shows an Undo toast

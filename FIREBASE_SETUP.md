@@ -12,7 +12,7 @@ You do this once. It needs a Google account (use a family one, not a personal on
 2. Under "Sign-in method" pick **Email/Password**, switch on the first toggle only (not "Email link"), **Save**.
 3. Open the **Users** tab, click **Add user**, type an email and a strong password for yourself. Repeat for each family member and for the manager.
 4. Each user row shows a **User UID** (a long code). Keep this tab open: you need each UID in step 4.
-5. Under **Settings > User actions** make sure "Enable create (sign-up)" is **off**, so strangers cannot make accounts. (If you do not see it, skip: the database rules below already stop strangers.)
+5. Under **Settings > User actions** make sure "Enable create (sign-up)" is **on**. The People page in the app needs it to create accounts for your family and manager. This is safe: an account with no role (a record in `users`) can read and write nothing, and only owners can give roles.
 
 ## 3. Create the database
 1. Left menu: **Build > Firestore Database**, click **Create database**.
@@ -27,6 +27,9 @@ What these rules do: owners can read and change everything. The manager can read
 2. Document ID: paste **your User UID** (from step 2.4). Add one field: name `role`, type string, value `owner`. Save.
 3. Add one more document for each other person: their UID, field `role`, value `owner` (family) or `manager`.
 4. Roles are exactly the words `owner` and `manager`, lowercase, no spaces.
+
+## Adding more people later
+After your own owner account works, you never need the Firebase console for this again. In the app, open **People and sign-in** (under Set up), type the person's email, choose Owner or Manager, and press Add person. The app creates their account and role, and shows a message with the address, email and password to send them. Use the console steps above only for the very first owner.
 
 ## 5. Connect the app
 1. Project settings (gear icon, top left) > **General** > scroll to **Your apps** > click the web icon `</>`. Nickname `garden-web`. Leave "Firebase Hosting" unticked. **Register app**.

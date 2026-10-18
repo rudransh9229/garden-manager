@@ -23,6 +23,7 @@ The screenshots use made-up demo data. No real client information is in this rep
 - **Money:** revenue, pending dues, expenses and profit per event, month and year. Cancelled bookings keep their advance as revenue, and a cancellation is easy to undo or edit.
 - **Graphs:** separate Revenue and Expense pages, by month, season, year and event type. You define the seasons.
 - **Team:** the manager picks staff for an event day and marks attendance. Wages flow into profit.
+- **People:** owners add family members and the manager from inside the app (email, password, role), change roles, and remove access. No console needed after the first owner.
 - **Roles:** the owner sees everything. The manager sees bookings, client names, staff and attendance, and nothing about money. The database enforces this, not just the screen.
 - **Old records:** import six years of history from a spreadsheet. Only a date and a client name are needed.
 - **Backup:** one `.zip` with all records and every invoice file. Restore it any time.
@@ -84,7 +85,7 @@ This is a web app that installs like an app. It is not an App Store or Play Stor
 Yes, as long as you follow two rules.
 
 - **Never commit real data.** Records live in Firebase, not in this repository. Do not add backups, exports or photos of invoices to the folder. `.gitignore` already blocks `.env` files, `.zip` files and `garden-backup*`.
-- **The four Firebase values are not secrets.** They end up inside the published website by design. What protects your data is sign-in plus the rules in `firestore.rules`: nobody without a role document can read anything. Turn off "Enable create (sign-up)" in Firebase so strangers cannot even make accounts (FIREBASE_SETUP.md, section 2, point 5).
+- **The four Firebase values are not secrets.** They end up inside the published website by design. What protects your data is sign-in plus the rules in `firestore.rules`: nobody without a role document can read anything. Sign-up is switched on in Firebase so owners can add people from the app. A stranger could create an account, but an account without a role record cannot read or write anything.
 
 ## Costs
 Everything here fits Firebase's free Spark plan (1 GiB stored, 50,000 reads and 20,000 writes a day) and free GitHub Pages hosting for public repositories. No card is needed anywhere. Invoice files are stored inside the database (photos are shrunk automatically, PDFs up to 3 MB), which is why no paid file storage is needed. If you need bigger files later, Firebase Storage works but requires a card.

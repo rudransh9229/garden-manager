@@ -12,6 +12,8 @@ export function createFakeFirestore() {
     collection: (db, name) => ({ name }),
     doc: (db, name, id) => ({ name, id }),
     async getDocs(ref) { return snapshot(ref.name); },
+    async setDoc(ref, data, opts) { const c = col(ref.name); c.set(ref.id, opts && opts.merge ? { ...(c.get(ref.id) || {}), ...JSON.parse(JSON.stringify(data)) } : JSON.parse(JSON.stringify(data))); },
+    async deleteDoc(ref) { col(ref.name).delete(ref.id); },
     async getDoc(ref) { const d = col(ref.name).get(ref.id); return { exists: () => d !== undefined, data: () => d }; },
     onSnapshot(ref, a, b, c) {
       const [next, error] = typeof a === 'function' ? [a, b] : [b, c]; // (ref, options, next, error) also accepted
