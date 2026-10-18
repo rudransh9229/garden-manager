@@ -14,6 +14,14 @@ export function addDays(iso, n) {
   const t = new Date(toUTC(iso) + n * 86400000);
   return isoFrom(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
 }
+/** Same day number n months later (a 31st lands on the last day of a shorter month). */
+export function addMonths(iso, n) {
+  const { y, m, d } = parseISO(iso);
+  const t = y * 12 + (m - 1) + n;
+  const ny = Math.floor(t / 12);
+  const nm = (t % 12) + 1;
+  return isoFrom(ny, nm, Math.min(d, daysInMonth(ny, nm)));
+}
 /** a - b in whole days */
 export const diffDays = (a, b) => Math.round((toUTC(a) - toUTC(b)) / 86400000);
 export const daysInMonth = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();

@@ -1,6 +1,6 @@
 import { mulberry32 } from '../lib/rng.js';
 import { parseISO, isoFrom, addDays, daysInMonth } from '../lib/dates.js';
-import { ATT_FACTOR, DEFAULT_EVENT_TYPES } from '../lib/constants.js';
+import { ATT_FACTOR, DEFAULT_EVENT_TYPES, DEFAULT_EXPENSE_CATEGORIES } from '../lib/constants.js';
 
 /**
  * Demo data only. All names, phone numbers and amounts are invented.
@@ -29,6 +29,7 @@ export function defaultSettings() {
   return {
     gardenName: 'Marriage Garden',
     eventTypes: [...DEFAULT_EVENT_TYPES],
+    expenseCategories: [...DEFAULT_EXPENSE_CATEGORIES],
     seasons: [
       { name: 'Peak', months: [10, 11, 12, 1, 2] },
       { name: 'Summer', months: [3, 4, 5, 6] },

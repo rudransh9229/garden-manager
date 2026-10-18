@@ -1,5 +1,5 @@
 import { parseISO } from './dates.js';
-import { EXPENSE_CATEGORIES } from './constants.js';
+import { LABOUR, expenseCategories } from './constants.js';
 
 /**
  * Money rules (see CLAUDE.md):
@@ -7,7 +7,10 @@ import { EXPENSE_CATEGORIES } from './constants.js';
  *  - Cancelled bookings never count their price or balance. Only the advance the owner KEPT
  *    counts, as "cancellation income", dated by the cancellation date.
  *  - Event expenses = typed expenses + labour worked out from attendance (wage x attendance).
- *  - Profit = revenue + cancellation income - expenses.
+ *  - Garden expenses are typed expenses with no booking (painting, repairs, yearly bills). They are not part of any
+ *    one event; they reduce profit for the month, season and year they fall in.
+ *  - Profit = revenue + cancellation income - event expenses - garden expenses.
+ *  - An expense with paid === false is a bill still to pay: it counts as a cost now and is listed as owed.
  */
 export const COUNTED = new Set(['Confirmed', 'Completed']);
 
@@ -37,12 +40,16 @@ export function computeAll(state) {
   const activeCancel = new Map();
   for (const c of cancellations) if (!c.restored) activeCancel.set(c.bookingId, c);
 
+  const categories = [LABOUR, ...expenseCategories(settings)];
+  for (const e of expenses) if (!categories.includes(e.category)) categories.push(e.category);
+
   const rows = bookings.map((b) => {
     const { y, m, d } = parseISO(b.date);
     const received = sum(pay.get(b.id), (p) => p.amount);
     const labour = sum(att.get(b.id), (a) => a.wageApplied || 0);
-    const byCat = { Labour: labour };
-    for (const cat of EXPENSE_CATEGORIES) byCat[cat] = 0;
+    const byCat = {};
+    for (const cat of categories) byCat[cat] = 0;
+    byCat[LABOUR] = labour;
     for (const e of exp.get(b.id) || []) byCat[e.category] = (byCat[e.category] || 0) + e.amount;
     const expensesTotal = Object.values(byCat).reduce((s, v) => s + v, 0);
     const counted = COUNTED.has(b.status);
@@ -90,21 +97,33 @@ export function computeAll(state) {
       booking: r.booking,
     });
   }
-  return { rows, rowById, cancelRows, clientById, staffById };
+  // Garden expenses: no booking attached (or the booking no longer exists).
+  const overheadRows = [];
+  for (const e of expenses) {
+    if (e.bookingId) continue; // belongs to a booking (or to one that is gone): not a garden expense
+    const { y, m } = parseISO(e.date);
+    overheadRows.push({
+      id: e.id, expense: e, date: e.date, year: y, month: m, season: seasonOf(settings, m),
+      category: e.category, amount: e.amount, paid: e.paid !== false, vendor: e.vendor || '', mode: e.mode || '', note: e.note || '',
+    });
+  }
+  return { rows, rowById, cancelRows, overheadRows, categories, clientById, staffById };
 }
 
-/** Totals over a list of event rows (+ optional cancellation rows). */
-export function totals(rows, cancelRows = []) {
-  const t = { revenue: 0, collected: 0, pending: 0, expenses: 0, cancel: 0, events: 0 };
+/** Totals over a list of event rows (+ optional cancellation rows and garden expenses). */
+export function totals(rows, cancelRows = [], overheadRows = []) {
+  const t = { revenue: 0, collected: 0, pending: 0, expenses: 0, eventExpenses: 0, overhead: 0, cancel: 0, events: 0 };
   for (const r of rows) {
     if (!r.counted) continue;
     t.revenue += r.revenue;
     t.collected += r.collected;
     t.pending += r.pending;
     t.expenses += r.expenses;
+    t.eventExpenses += r.expenses;
     t.events += 1;
   }
   for (const c of cancelRows) t.cancel += c.amount;
+  for (const o of overheadRows) { t.overhead += o.amount; t.expenses += o.amount; }
   t.total = t.revenue + t.cancel;
   t.profit = t.total - t.expenses;
   return t;

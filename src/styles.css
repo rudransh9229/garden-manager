@@ -306,3 +306,12 @@ textarea { border: 1px solid var(--line-2); border-radius: 9px; padding: 9px 11p
 @media (max-width: 560px) { .sync:not(.error) { display: none; } .sync.error { font-size: 12px; } }
 
 .linklike { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* A wide column beside a narrow one; stacks on tablets and phones. */
+.split-2-1, .split-3-2 { display: grid; gap: 16px; align-items: start; }
+.split-2-1 { grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); }
+.split-3-2 { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+@media (max-width: 1000px) { .split-2-1, .split-3-2 { grid-template-columns: minmax(0, 1fr); } }
+.stack > * { min-width: 0; }

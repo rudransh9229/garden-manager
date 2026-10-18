@@ -4,6 +4,7 @@ import { Confirm, Field, Modal, PageHead } from '../components/ui.jsx';
 import { buildBackup, readBackup, restoreFiles } from '../lib/backup.js';
 import { MONTHS } from '../lib/format.js';
 import { plural } from '../lib/format.js';
+import { expenseCategories } from '../lib/constants.js';
 
 export default function Settings() {
   const { state, dispatch, notify, startFresh, loadDemo, today, canLoadDemo, backendName } = useStore();
@@ -11,7 +12,7 @@ export default function Settings() {
 
   return (
     <div className="page">
-      <PageHead title="Settings" sub="Your garden's name, booking types, seasons and backups." />
+      <PageHead title="Settings" sub="Your garden's name, booking types, expense categories, seasons and backups." />
       <div className="stack">
         <section className="card">
           <div className="card-head"><h2>Garden</h2></div>
@@ -21,6 +22,7 @@ export default function Settings() {
           </div>
         </section>
         <BookingTypes />
+        <ExpenseCategories />
         <Seasons />
         <Data today={today} state={state} dispatch={dispatch} notify={notify} startFresh={startFresh} loadDemo={loadDemo} canLoadDemo={canLoadDemo} backendName={backendName} />
       </div>
@@ -80,6 +82,95 @@ function BookingTypes() {
       </div>
       {removing && <RemoveType name={removing} onClose={() => setRemoving(null)} />}
     </section>
+  );
+}
+
+function ExpenseCategories() {
+  const { state, dispatch, notify } = useStore();
+  const cats = expenseCategories(state.settings);
+  const [adding, setAdding] = useState('');
+  const [renaming, setRenaming] = useState(null);
+  const [removing, setRemoving] = useState(null);
+  const count = (c) => state.expenses.filter((e) => e.category === c).length;
+  const bad = (n, except) => {
+    const t = n.trim().toLowerCase();
+    if (!t) return '';
+    if (t === 'labour') return '"Labour" is worked out from attendance. Pick another name.';
+    return cats.some((c) => c !== except && c.toLowerCase() === t) ? 'You already have this category.' : '';
+  };
+  const addErr = bad(adding);
+  const add = () => {
+    if (!adding.trim() || addErr) return;
+    dispatch({ type: 'addExpenseCategory', name: adding });
+    notify(`"${adding.trim()}" added`);
+    setAdding('');
+  };
+  return (
+    <section className="card">
+      <div className="card-head">
+        <div><h2>Expense categories</h2><p>The kinds of cost you pick when you add an expense, such as Painting or Repairs. Add your own, rename them, or remove the ones you do not use.</p></div>
+      </div>
+      <div className="list">
+        {cats.map((c) => (
+          <div className="list-row" key={c}>
+            {renaming?.from === c ? (
+              <>
+                <input type="text" value={renaming.to} onChange={(e) => setRenaming({ ...renaming, to: e.target.value })} aria-label={`New name for ${c}`} style={{ maxWidth: 260 }} autoFocus
+                  onKeyDown={(e) => { if (e.key === 'Escape') setRenaming(null); }} />
+                <button className="btn small primary" disabled={!renaming.to.trim() || !!bad(renaming.to, c)} onClick={() => { dispatch({ type: 'renameExpenseCategory', from: c, to: renaming.to }); notify('Renamed'); setRenaming(null); }}>Save</button>
+                <button className="btn small" onClick={() => setRenaming(null)}>Close</button>
+                {bad(renaming.to, c) && <span className="small" style={{ color: 'var(--red)' }}>{bad(renaming.to, c)}</span>}
+              </>
+            ) : (
+              <>
+                <div className="grow"><span className="t">{c}</span> <span className="small muted">· {plural(count(c), 'expense')}</span></div>
+                <button className="btn small" onClick={() => setRenaming({ from: c, to: c })}>Rename</button>
+                <button className="btn small danger" disabled={cats.length <= 1} onClick={() => setRemoving(c)}>Remove</button>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+      <hr className="sep" />
+      <div className="row" style={{ alignItems: 'flex-end' }}>
+        <Field label="Add a category" error={addErr}>
+          <input type="text" value={adding} onChange={(e) => setAdding(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} placeholder="For example Generator fuel or Pest control" style={{ minWidth: 260 }} />
+        </Field>
+        <button className="btn primary" style={{ marginBottom: addErr ? 30 : 12 }} onClick={add} disabled={!adding.trim() || !!addErr}>Add category</button>
+      </div>
+      {removing && <RemoveCategory name={removing} cats={cats} onClose={() => setRemoving(null)} />}
+    </section>
+  );
+}
+
+function RemoveCategory({ name, cats, onClose }) {
+  const { state, dispatch, notify } = useStore();
+  const others = cats.filter((c) => c !== name);
+  const used = state.expenses.filter((e) => e.category === name).length;
+  const [to, setTo] = useState(others.includes('Other') ? 'Other' : others[0]);
+  if (!used) {
+    return (
+      <Confirm title={`Remove "${name}"?`} confirmLabel="Remove category" danger onConfirm={() => { dispatch({ type: 'removeExpenseCategory', name }); notify(`"${name}" removed`); }} onClose={onClose}>
+        <p>No expense uses this category, so nothing else changes.</p>
+      </Confirm>
+    );
+  }
+  return (
+    <Modal
+      title={`Remove "${name}"?`}
+      onClose={onClose}
+      footer={
+        <>
+          <button className="btn" onClick={onClose}>Keep it</button>
+          <button className="btn danger solid" onClick={() => { dispatch({ type: 'removeExpenseCategory', name, moveTo: to }); notify(`"${name}" removed. ${plural(used, 'expense')} moved to ${to}.`); onClose(); }}>Remove and move</button>
+        </>
+      }
+    >
+      <p style={{ marginBottom: 12 }}><b>{plural(used, 'expense')}</b> use this category. Choose the category they should have from now on. No amount is deleted.</p>
+      <Field label="Move these expenses to">
+        <select value={to} onChange={(e) => setTo(e.target.value)}>{others.map((c) => <option key={c}>{c}</option>)}</select>
+      </Field>
+    </Modal>
   );
 }
 

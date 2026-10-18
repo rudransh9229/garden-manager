@@ -17,6 +17,8 @@ const P = {
   menu: 'M4 7h16M4 12h16M4 17h16',
   key: 'M14.5 9.5a4 4 0 1 0-3.9 3.9L4 20v-3h3v-3h3l1.1-1.1M16 8h.01',
   plus: 'M12 5v14M5 12h14',
+  receipt: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6',
+  scale: 'M12 4v16M7 20h10M4 8h16M4 8l-2.5 6a3 3 0 0 0 5 0zM20 8l-2.5 6a3 3 0 0 0 5 0z',
 };
 export function Icon({ name }) {
   return (

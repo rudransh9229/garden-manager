@@ -20,6 +20,10 @@ import { makeZip, readZip } from '../src/lib/zip.js';
 import { readBackup } from '../src/lib/backup.js';
 import { createPeopleApi, makePassword } from '../src/lib/backends/people.js';
 import { createFirestoreFileStore } from '../src/lib/backends/firestoreFiles.js';
+import { repeatDates } from '../src/lib/reducer.js';
+import { addMonths } from '../src/lib/dates.js';
+import { expenseCategories, DEFAULT_EXPENSE_CATEGORIES } from '../src/lib/constants.js';
+import { buildStatement, periodRange, periodYears, statementWorkbook } from '../src/lib/balance.js';
 
 let failed = 0;
 const ok = (cond, msg) => {
@@ -491,6 +495,91 @@ console.log('People page (who can sign in)');
   const rules = fsNode.readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
   const usersRule = (rules.match(/match \/users\/\{uid\}\s*\{([^}]*)\}/) || [])[1] || '';
   ok(/allow write: if isOwner\(\)/.test(usersRule) && /request\.auth\.uid == uid \|\| isOwner\(\)/.test(usersRule), 'rules: owners manage people, everyone else can read only their own record');
+}
+
+console.log('Garden expenses and the balance sheet');
+{
+  const base = buildSeed(TODAY);
+  const d0 = computeAll(base);
+  const y = 2025;
+  const before = totals(applyFilters(d0, { year: y, season: 'all', type: 'all', includeCancel: true }).rows, [], []);
+  let st2 = reducer(base, { type: 'addExpense', expense: { category: 'Painting', amount: 5000000, date: '2025-06-10', vendor: 'Sharma Paints', paid: true } });
+  st2 = reducer(st2, { type: 'addExpense', expense: { category: 'Repairs and maintenance', amount: 1200000, date: '2025-11-02', paid: false } });
+  const d2 = computeAll(st2);
+  eq(d2.overheadRows.length, 2, 'garden expenses (no booking) are listed separately');
+  eq(d2.rows.reduce((s, r) => s + r.expenses, 0), d0.rows.reduce((s, r) => s + r.expenses, 0), 'garden expenses are not added to any event');
+  const f25 = applyFilters(d2, { year: y, season: 'all', type: 'all', includeCancel: true });
+  const t25 = totals(f25.rows, f25.cancelRows, f25.overhead);
+  const t25a = totals(f25.rows, f25.cancelRows, []);
+  eq(t25.expenses - t25a.expenses, 6200000, 'garden expenses add to the year’s expenses');
+  eq(t25a.profit - t25.profit, 6200000, 'garden expenses reduce profit by the same amount');
+  eq(applyFilters(d2, { year: y, season: 'all', type: 'Wedding', includeCancel: true }).overhead.length, 0, 'picking one booking type leaves garden costs out');
+  const mo = monthly(f25, y, d2.categories);
+  eq(mo[5].Painting, 5000000, 'the June bar carries the painting cost');
+  eq(mo[5].overhead, 5000000, 'and counts it as a garden cost');
+  eq(mo.reduce((s, m) => s + m.expenses, 0), t25.expenses, 'monthly expenses add up to the year total');
+  eq(byYear(applyFilters(d2, { year: 'all', season: 'all', type: 'all', includeCancel: true })).find((r) => r.year === y).expenses, t25.expenses, 'year view agrees with the month view');
+  eq(bySeasonYear(applyFilters(d2, { year: 'all', season: 'all', type: 'all', includeCancel: true }), st2.settings).seasons.reduce((s, n) => s + 0, 0), 0, 'season table builds with garden costs');
+  ok(before.expenses === t25a.expenses, 'a year without garden costs is unchanged');
+
+  // categories
+  eq(expenseCategories({}).length, DEFAULT_EXPENSE_CATEGORIES.length, 'old saved settings (no category list) fall back to the defaults');
+  let c = reducer(base, { type: 'addExpenseCategory', name: '  Pest control ' });
+  ok(expenseCategories(c.settings).includes('Pest control'), 'a new category is added');
+  eq(expenseCategories(reducer(c, { type: 'addExpenseCategory', name: 'pest CONTROL' }).settings).length, expenseCategories(c.settings).length, 'duplicate category names are ignored');
+  eq(expenseCategories(reducer(base, { type: 'addExpenseCategory', name: 'labour' }).settings).length, DEFAULT_EXPENSE_CATEGORIES.length, '"Labour" is reserved for attendance wages');
+  c = reducer(c, { type: 'addExpense', expense: { category: 'Pest control', amount: 100000, date: '2026-01-05' } });
+  const renamed = reducer(c, { type: 'renameExpenseCategory', from: 'Pest control', to: 'Termite and pest' });
+  ok(renamed.expenses.every((e) => e.category !== 'Pest control') && renamed.expenses.some((e) => e.category === 'Termite and pest'), 'renaming a category renames it on every expense');
+  eq(reducer(c, { type: 'removeExpenseCategory', name: 'Pest control' }), c, 'a category in use cannot be removed without moving its expenses');
+  const moved = reducer(c, { type: 'removeExpenseCategory', name: 'Pest control', moveTo: 'Other' });
+  ok(!expenseCategories(moved.settings).includes('Pest control') && moved.expenses.some((e) => e.category === 'Other' && e.amount === 100000), 'removing a category moves its expenses and deletes no amount');
+
+  // edit, mark paid, repeat, delete booking
+  const exId = st2.expenses.find((e) => e.vendor === 'Sharma Paints').id;
+  const edited = reducer(st2, { type: 'updateExpense', id: exId, patch: { amount: 5500000 } });
+  eq(edited.expenses.find((e) => e.id === exId).amount, 5500000, 'an expense can be edited');
+  const unpaidId = st2.expenses.find((e) => e.paid === false).id;
+  eq(reducer(st2, { type: 'updateExpense', id: unpaidId, patch: { paid: true } }).expenses.find((e) => e.id === unpaidId).paid, true, 'a bill can be marked paid');
+  eq(repeatDates('2026-01-31', 'monthly', 3).join(','), '2026-01-31,2026-02-28,2026-03-31', 'a monthly repeat from the 31st lands on month ends');
+  eq(repeatDates('2026-05-10', 'yearly', 2).join(','), '2026-05-10,2027-05-10', 'a yearly repeat');
+  eq(repeatDates('2026-05-10', 'none', 9).length, 1, 'no repeat is one date');
+  eq(addMonths('2026-12-15', 2), '2027-02-15', 'months roll over the year');
+  const rep = reducer(base, { type: 'addExpenses', expenses: repeatDates('2026-01-05', 'monthly', 4).map((date) => ({ category: 'Water', amount: 80000, date })) });
+  eq(rep.expenses.length - base.expenses.length, 4, 'a repeating expense becomes separate records');
+  eq(new Set(rep.expenses.map((e) => e.id)).size, rep.expenses.length, 'every record has its own id');
+  const someBooking = base.bookings[0].id;
+  const del = reducer(st2, { type: 'deleteBooking', bookingId: someBooking });
+  eq(del.expenses.filter((e) => !e.bookingId).length, 2, 'deleting a booking leaves garden expenses alone');
+
+  // the statement
+  const per = periodRange('cy', y);
+  const stm = buildStatement({ state: st2, data: d2, period: per, today: TODAY });
+  eq(stm.profit, t25.profit, 'balance sheet profit equals the profit shown on the Money page for the same year');
+  eq(stm.income.total, t25.total, 'balance sheet income equals the Money page revenue');
+  eq(stm.expenses.total, t25.expenses, 'balance sheet expenses equal the Money page expenses');
+  eq(stm.categories.reduce((s, r) => s + r.total, 0), stm.expenses.total, 'category rows add up to total expenses');
+  eq(stm.months.reduce((s, m) => s + m.income - m.eventCosts - m.gardenCosts, 0), stm.profit, 'month by month adds up to the profit');
+  eq(stm.toPay, 1200000, 'the unpaid repair bill is listed as still to pay');
+  eq(stm.paidOut, stm.expenses.total - 1200000, 'expenses paid = total minus unpaid bills');
+  const fy = periodRange('fy', 2025);
+  eq(fy.from + '|' + fy.to, '2025-04-01|2026-03-31', 'a financial year runs April to March');
+  const fyStm = buildStatement({ state: st2, data: d2, period: fy, today: TODAY });
+  ok(fyStm.garden.length === 2 && fyStm.events.every((r) => r.booking.date >= fy.from && r.booking.date <= fy.to), 'financial-year statement only holds that year’s dates');
+  const yrsP = periodYears(d2, TODAY);
+  ok(yrsP.fy.includes(2025) && yrsP.cy.includes(2026), 'period choices come from the data');
+  const allStm = buildStatement({ state: st2, data: d2, period: periodRange('all'), today: TODAY });
+  eq(allStm.events.length, d2.rows.filter((r) => r.counted).length, 'all years holds every counted event');
+
+  // the Excel file
+  const blob = await statementWorkbook(stm, 'Test Garden');
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const entries = await readZip(blob);
+  const names = entries.map((e) => e.name);
+  ok(['[Content_Types].xml', 'xl/workbook.xml', 'xl/styles.xml', 'xl/worksheets/sheet1.xml', 'xl/worksheets/sheet6.xml'].every((n) => names.includes(n)), 'the .xlsx holds the parts Excel needs');
+  fsNode.mkdirSync(new URL('../tmp-check/', import.meta.url), { recursive: true });
+  fsNode.writeFileSync(new URL('../tmp-check/balance.xlsx', import.meta.url), bytes);
+  ok(bytes.length > 4000, `the Excel file is ${bytes.length} bytes`);
 }
 
 console.log('Import helpers');

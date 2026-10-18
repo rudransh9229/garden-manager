@@ -19,6 +19,9 @@ A private management web app for a marriage garden (wedding venue), used by the 
 11. Search any event by client name, phone, date ("4 Nov 2023", 04/11/2023), month, year or invoice number.
 12. **Running cost ~ zero.** Prefer free tiers. Any paid service needs the owner's explicit approval.
 
+13. Garden expenses: costs not tied to an event (painting, repairs, yearly bills) with owner-defined categories, paid-to, payment mode, paid/not-paid-yet, repeat (monthly/quarterly/yearly) and edit. They reduce profit in the month, season and year they fall in (`bookingId` is '').
+14. Balance sheet page for a financial year (Apr-Mar), calendar year or all years, downloadable as an Excel file (several sheets, live formulas). It is a management statement (income, expenses, profit, owed, cash view), not an audited accounting balance sheet.
+
 ## Non-goals (for now)
 - Public booking site, client logins, online payment gateway.
 - Public sign-ups or SaaS. Only two roles: Owner (family) and Manager.
@@ -47,6 +50,7 @@ A private management web app for a marriage garden (wedding venue), used by the 
 - Delete is for entries made by mistake (the owner asked for it): it asks first, removes the booking with its payments, expenses, attendance and invoices, and offers Undo. Only owners can delete.
 - Only Confirmed and Completed bookings count as revenue. Enquiry and Tentative never do.
 - Booking types come from `settings.eventTypes`. Never hard-code a list of types. A type in use can only be removed by moving its bookings to another type.
+- Garden expenses are expenses with `bookingId: ''`. Never add them to an event's profit; they count in totals/graphs by their own date. `paid: false` means a bill still to pay (only counted as owed when dated today or earlier). The word "Labour" is reserved for attendance wages.
 - Run `npm run check` after any change to money, search or import code. It must print "All checks passed".
 - A cancelled booking's full price and balance never count in pending dues; only the kept advance counts as revenue.
 - Update `SESSION_HANDOFF.md` at the end of every session.
@@ -62,6 +66,7 @@ A private management web app for a marriage garden (wedding venue), used by the 
 
 ## Code map (`src/`)
 - `lib/calc.js` — the money rules: revenue, pending, labour, profit, cancellation income
+- `lib/balance.js` + `lib/xlsx.js` — balance sheet numbers and the Excel writer (no library; zip of XML, formulas carry cached values)
 - `lib/analytics.js` — filters and grouping for the revenue and expense graphs
 - `lib/reducer.js` — every change to the data (add/delete booking, cancel/restore, attendance, booking types, import)
 - `lib/search.js` — understands "Sharma", "4 Nov 2023", "Nov 2023", "2022", phone digits, invoice numbers

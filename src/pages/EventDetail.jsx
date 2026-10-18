@@ -7,7 +7,7 @@ import AttendancePanel from '../components/AttendancePanel.jsx';
 import DocFileActions from '../components/DocFileActions.jsx';
 import { addDays, isValidISO } from '../lib/dates.js';
 import { fmtDate, fmtPhone, inr, plural, toPaise, toRupeesInput } from '../lib/format.js';
-import { EXPENSE_CATEGORIES, MANAGER_EDIT_DAYS, PAYMENT_MODES } from '../lib/constants.js';
+import { expenseCategories, MANAGER_EDIT_DAYS, PAYMENT_MODES } from '../lib/constants.js';
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -243,8 +243,9 @@ function PaymentsCard({ id, payments, total }) {
 }
 
 function ExpensesCard({ id, expenses, labour }) {
-  const { dispatch, act, notify, today } = useStore();
-  const [f, setF] = useState({ category: EXPENSE_CATEGORIES[0], amount: '', date: today, note: '' });
+  const { state, dispatch, act, notify, today } = useStore();
+  const cats = expenseCategories(state.settings);
+  const [f, setF] = useState({ category: cats[0], amount: '', date: today, note: '' });
   const [touched, setTouched] = useState(false);
   const amt = toPaise(f.amount);
   const err = !amt ? 'Enter the amount spent.' : !isValidISO(f.date) ? 'Pick a valid date.' : '';
@@ -268,7 +269,7 @@ function ExpensesCard({ id, expenses, labour }) {
           <div className="list-row" key={e.id}>
             <div className="grow">
               <div className="t num">{inr(e.amount)} <span className="muted" style={{ fontWeight: 400 }}>· {e.category}</span></div>
-              <div className="small muted">{fmtDate(e.date)}{e.note ? ` · ${e.note}` : ''}</div>
+              <div className="small muted">{fmtDate(e.date)}{e.vendor ? ` · ${e.vendor}` : ''}{e.note ? ` · ${e.note}` : ''}{e.paid === false ? ' · not paid yet' : ''}</div>
             </div>
             <button className="btn small danger" onClick={() => act({ type: 'deleteExpense', id: e.id }, `${inr(e.amount)} expense removed`)} aria-label={`Remove expense of ${inr(e.amount)}`}>Remove</button>
           </div>
@@ -276,7 +277,7 @@ function ExpensesCard({ id, expenses, labour }) {
       </div>
       <hr className="sep" />
       <div className="form-grid">
-        <Field label="What was it for?"><select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })}>{EXPENSE_CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select></Field>
+        <Field label="What was it for?"><select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })}>{(cats.includes(f.category) ? cats : [f.category, ...cats]).map((c) => <option key={c}>{c}</option>)}</select></Field>
         <Field label="Amount spent" error={touched && !amt ? err : undefined}><MoneyInput value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} placeholder="0" /></Field>
         <Field label="Date" error={touched && amt && err ? err : undefined}><input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></Field>
         <Field label="Note"><input type="text" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="Optional" /></Field>

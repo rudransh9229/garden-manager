@@ -49,12 +49,13 @@ export function DrillPanel({ drill, onClose, mode = 'revenue' }) {
   if (!drill) return null;
   const rows = [...drill.rows].sort((a, b) => (a.booking.date < b.booking.date ? -1 : 1));
   const cancel = drill.cancel || [];
+  const overhead = [...(drill.overhead || [])].sort((a, b) => (a.date < b.date ? -1 : 1));
   return (
     <section className="card" ref={ref} aria-live="polite" style={{ marginTop: 16, borderColor: 'var(--green)' }}>
       <div className="card-head">
         <div>
           <h2>{drill.title}</h2>
-          <p>{plural(rows.length, 'event')}{cancel.length ? ` and ${plural(cancel.length, 'kept advance')}` : ''}</p>
+          <p>{plural(rows.length, 'event')}{cancel.length ? ` and ${plural(cancel.length, 'kept advance')}` : ''}{mode === 'expenses' && overhead.length ? ` and ${plural(overhead.length, 'garden expense')}` : ''}</p>
         </div>
         <button className="btn small" onClick={onClose}>Close</button>
       </div>
@@ -70,6 +71,14 @@ export function DrillPanel({ drill, onClose, mode = 'revenue' }) {
                 <td><Link to={`/events/${r.id}`}>{r.client.name}</Link></td>
                 <td className="hide-sm">{r.eventType}</td>
                 <td className="right num">{inr(mode === 'expenses' ? r.expenses : r.revenue)}</td>
+              </tr>
+            ))}
+            {mode === 'expenses' && overhead.map((o) => (
+              <tr key={o.id}>
+                <td className="num" style={{ whiteSpace: 'nowrap' }}>{fmtDate(o.date)}</td>
+                <td><Link to="/costs">{o.vendor || o.category}</Link><div className="small muted">{o.category}{o.note ? ` · ${o.note}` : ''}</div></td>
+                <td className="hide-sm">Garden expense</td>
+                <td className="right num">{inr(o.amount)}</td>
               </tr>
             ))}
             {mode !== 'expenses' && cancel.map((c) => (

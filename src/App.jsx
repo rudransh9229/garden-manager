@@ -15,10 +15,12 @@ import Attendance from './pages/Attendance.jsx';
 import Import from './pages/Import.jsx';
 import Settings from './pages/Settings.jsx';
 import People from './pages/People.jsx';
+import Expenses from './pages/Expenses.jsx';
+import BalanceSheet from './pages/BalanceSheet.jsx';
 
 const OWNER_NAV = [
   { group: 'Run the garden', items: [['/', 'Dashboard', 'home'], ['/calendar', 'Calendar', 'calendar'], ['/events', 'Events and search', 'search'], ['/invoices', 'Invoices', 'file']] },
-  { group: 'Money', items: [['/money', 'Money', 'rupee'], ['/revenue', 'Revenue graphs', 'bars'], ['/expenses', 'Expense graphs', 'pie']] },
+  { group: 'Money', items: [['/money', 'Revenue and profit', 'rupee'], ['/costs', 'Expenses', 'receipt'], ['/balance-sheet', 'Balance sheet', 'scale'], ['/revenue', 'Revenue graphs', 'bars'], ['/expenses', 'Expense graphs', 'pie']] },
   { group: 'Team', items: [['/attendance', 'Attendance', 'check'], ['/staff', 'Staff', 'users']] },
   { group: 'Set up', items: [['/import', 'Import old records', 'upload'], ['/settings', 'Settings', 'gear']] },
 ];
@@ -151,6 +153,8 @@ export default function App() {
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/invoices" element={<OwnerOnly><Invoices /></OwnerOnly>} />
             <Route path="/money" element={<OwnerOnly><Money /></OwnerOnly>} />
+            <Route path="/costs" element={<OwnerOnly><Expenses /></OwnerOnly>} />
+            <Route path="/balance-sheet" element={<OwnerOnly><BalanceSheet /></OwnerOnly>} />
             <Route path="/revenue" element={<OwnerOnly><RevenueGraphs /></OwnerOnly>} />
             <Route path="/expenses" element={<OwnerOnly><ExpenseGraphs /></OwnerOnly>} />
             <Route path="/attendance" element={<Attendance />} />

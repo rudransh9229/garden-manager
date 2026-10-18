@@ -118,3 +118,12 @@ Update this at the end of every working session. Newest session on top.
 - Owner said yes to building it. New: lib/backends/people.js (add/list/setRole/removeAccess/resetPassword, guards: not self, never zero owners, password >= 6), pages/People.jsx (nav 'People and sign-in' under Set up, online mode only), firebase.js creates accounts through a second in-memory auth instance so the owner is not signed out. Rules: /users/{uid} read own or owner, write owner only. 16 new checks; page verified in a browser against a fake Firestore (add, duplicate email message, role change, remove, own row protected, no phone overflow).
 - Owner must (a) turn Firebase 'Enable create (sign-up)' ON, (b) re-paste firestore.rules, then use People page. NOT verified on real Firebase.
 - Limits: removing access does not delete the Firebase Auth account (client SDK cannot); an email that already has an account must be given a role via console; passwords are chosen by the owner and shown once.
+
+
+## Session: expenses and balance sheet (2026-10-19)
+- Live site works on GitHub Pages with real Firebase (bad GitHub variable values fixed: typo in name, quotes, and a trailing line break in the project ID, which showed as "client is offline").
+- Added: Expenses page (/costs), expense categories in Settings, `addExpenses`/`updateExpense`/category actions, garden expenses in calc/analytics/graphs/Money/Dashboard, Balance sheet page (/balance-sheet) with Excel download (`lib/balance.js`, `lib/xlsx.js`).
+- Tested: npm run check (new section), Playwright costs.mjs (11 steps), flows 22/22, crawl clean, xlsx recalculated in LibreOffice (92 formulas, 0 mismatches).
+- No firestore.rules change needed (expenses already owner-only).
+- Not verified on real Firebase: saving the new fields (vendor, paid, mode) and settings.expenseCategories; owner should add one expense and reload.
+- Ideas not built: expense receipt photos, budgets per category, recurring templates that auto-create, PDF export of the balance sheet.

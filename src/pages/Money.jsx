@@ -20,7 +20,8 @@ export default function Money() {
   const inScope = (y, m) => (year === 'all' || y === Number(year)) && (month === 'all' || m === Number(month));
   const rows = useMemo(() => data.rows.filter((r) => r.counted && inScope(r.year, r.month)), [data.rows, year, month]);
   const cancelRows = useMemo(() => (cancel ? data.cancelRows.filter((c) => inScope(c.year, c.month)) : []), [data.cancelRows, year, month, cancel]);
-  const t = totals(rows, cancelRows);
+  const overhead = useMemo(() => data.overheadRows.filter((o) => inScope(o.year, o.month)), [data.overheadRows, year, month]);
+  const t = totals(rows, cancelRows, overhead);
 
   const lines = useMemo(() => [
     ...rows.map((r) => ({ id: r.id, kind: 'event', date: r.booking.date, client: r.client.name, type: r.eventType, revenue: r.revenue, received: r.collected, pending: r.pending, expenses: r.expenses, profit: r.profit })),
@@ -36,6 +37,7 @@ export default function Money() {
       toCSV([
         ['Date', 'Client', 'Type', 'Revenue', 'Received', 'Still due', 'Expenses', 'Profit'],
         ...sorted.map((l) => [l.date, l.client, l.type, l.revenue / 100, l.received / 100, l.pending / 100, l.expenses / 100, l.profit / 100]),
+        ...(t.overhead ? [[`${scope}`, 'Garden expenses (not tied to an event)', '', 0, 0, 0, t.overhead / 100, -t.overhead / 100]] : []),
         ['Total', '', '', t.total / 100, (t.collected + t.cancel) / 100, t.pending / 100, t.expenses / 100, t.profit / 100],
       ]),
     );
@@ -70,7 +72,7 @@ export default function Money() {
 
       <div className="grid cols-3" style={{ marginBottom: 16 }}>
         <Kpi accent label={`Total revenue, ${scope}`} value={inrShort(t.total)} sub={`${plural(t.events, 'event')}${cancel && t.cancel ? ` + ${inrShort(t.cancel)} kept advances` : ''}`} />
-        <Kpi label="Expenses" value={inrShort(t.expenses)} sub="Wages, decor, catering and the rest" />
+        <Kpi label="Expenses" value={inrShort(t.expenses)} sub={t.overhead ? `${inrShort(t.eventExpenses)} on events + ${inrShort(t.overhead)} garden costs` : 'Wages, decor, catering and the rest'} />
         <Kpi label="Profit" value={inrShort(t.profit)} tone={t.profit < 0 ? 'bad' : ''} sub={t.total > 0 ? `${Math.round((t.profit / t.total) * 100)}% of revenue` : ''} />
         <Kpi label="Received" value={inrShort(t.collected + t.cancel)} sub="Money in the bank for these events" />
         <Kpi label="Still to collect" value={inrShort(t.pending)} sub="Balance due on these events" />
@@ -111,6 +113,16 @@ export default function Money() {
                 ))}
               </tbody>
               <tfoot>
+                {t.overhead > 0 && (
+                  <tr>
+                    <td colSpan={2} style={{ padding: '10px' }}><Link to="/costs">Garden expenses</Link><div className="small muted">Painting, repairs, yearly bills: not tied to one event</div></td>
+                    <td className="right num"><span className="faint">—</span></td>
+                    <td className="right num"><span className="faint">—</span></td>
+                    <td className="right num"><span className="faint">—</span></td>
+                    <td className="right num">{inr(t.overhead)}</td>
+                    <td className="right num bad" style={{ fontWeight: 500 }}>{inr(-t.overhead)}</td>
+                  </tr>
+                )}
                 <tr>
                   <td colSpan={2} style={{ fontWeight: 700, padding: '12px 10px' }}>Total</td>
                   <td className="right num" style={{ fontWeight: 700 }}>{inr(t.total)}</td>

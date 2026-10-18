@@ -18,8 +18,8 @@ export default function Dashboard() {
 
   const stats = useMemo(() => {
     const all = applyFilters(data, { year: 'all', season: 'all', type: 'all', includeCancel: true });
-    const thisMonth = totals(all.rows.filter((r) => r.year === y && r.month === m), all.cancelRows.filter((c) => c.year === y && c.month === m));
-    const thisYear = totals(all.rows.filter((r) => r.year === y), all.cancelRows.filter((c) => c.year === y));
+    const thisMonth = totals(all.rows.filter((r) => r.year === y && r.month === m), all.cancelRows.filter((c) => c.year === y && c.month === m), all.overhead.filter((o) => o.year === y && o.month === m));
+    const thisYear = totals(all.rows.filter((r) => r.year === y), all.cancelRows.filter((c) => c.year === y), all.overhead.filter((o) => o.year === y));
     const pending = data.rows.reduce((s, r) => s + r.pending, 0);
     const months = monthly(applyFilters(data, { year: y, season: 'all', type: 'all', includeCancel: true }), y);
     return { thisMonth, thisYear, pending, months };
@@ -60,7 +60,7 @@ export default function Dashboard() {
           <div className="grid cols-4">
             <Kpi accent label={`Revenue in ${MONTHS_LONG[m - 1]}`} value={inrShort(stats.thisMonth.total)} sub={`${plural(stats.thisMonth.events, 'event')}${stats.thisMonth.cancel ? ` · ${inrShort(stats.thisMonth.cancel)} kept advances` : ''}`} />
             <Kpi label={`Revenue in ${y}`} value={inrShort(stats.thisYear.total)} sub={`${plural(stats.thisYear.events, 'event')}`} />
-            <Kpi label={`Profit in ${y}`} value={inrShort(stats.thisYear.profit)} sub={`After ${inrShort(stats.thisYear.expenses)} expenses`} tone={stats.thisYear.profit < 0 ? 'bad' : ''} />
+            <Kpi label={`Profit in ${y}`} value={inrShort(stats.thisYear.profit)} sub={`After ${inrShort(stats.thisYear.expenses)} expenses${stats.thisYear.overhead ? `, ${inrShort(stats.thisYear.overhead)} of it garden costs` : ''}`} tone={stats.thisYear.profit < 0 ? 'bad' : ''} />
             <Kpi label="Still to collect" value={inrShort(stats.pending)} sub="From confirmed and completed events" />
           </div>
 

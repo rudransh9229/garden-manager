@@ -4,7 +4,7 @@ import { PageHead } from '../components/ui.jsx';
 import { BarsAndLine, BarsChart, ChartCard, Donut, Empty0, yearColor } from '../components/Charts.jsx';
 import { AnalyticsFilters, DrillPanel, Highlights } from '../components/AnalyticsBits.jsx';
 import { money } from './RevenueGraphs.jsx';
-import { CHART_CATEGORIES, COLORS } from '../lib/constants.js';
+import { COLORS, catColor } from '../lib/constants.js';
 import { applyFilters, argmax, byYear, bySeasonYear, growth, monthly, yearsIn } from '../lib/analytics.js';
 import { fmtPct, inr, inrShort } from '../lib/format.js';
 
@@ -18,40 +18,42 @@ export default function ExpenseGraphs() {
 
   const filtered = useMemo(() => applyFilters(data, f), [data, f]);
   const across = useMemo(() => applyFilters(data, f, { ignoreYear: true }), [data, f]);
-  const months = useMemo(() => monthly(filtered, f.year), [filtered, f.year]);
+  const cats = data.categories;
+  const months = useMemo(() => monthly(filtered, f.year, cats), [filtered, f.year, cats]);
   const sy = useMemo(() => bySeasonYear(across, state.settings), [across, state.settings]);
   const perYear = useMemo(() => byYear(across).map((y) => ({ ...y, label: String(y.year) })), [across]);
 
   const catTotals = useMemo(() => {
-    const t = CHART_CATEGORIES.map((c) => ({ name: c, value: months.reduce((s, m) => s + m[c], 0), color: COLORS.cats[c] }));
+    const t = cats.map((c) => ({ name: c, value: months.reduce((s, m) => s + (m[c] || 0), 0), color: catColor(c, cats) }));
     return t;
-  }, [months]);
+  }, [months, cats]);
   const totalExp = catTotals.reduce((s, c) => s + c.value, 0);
   const rowsWithExpense = filtered.rows.filter((r) => r.expenses > 0).length;
   const nothing = totalExp === 0;
+  const overheadTotal = months.reduce((s, m) => s + m.overhead, 0);
   const topCat = argmax(catTotals, (c) => c.value);
   const priciest = argmax(months, (m) => m.expenses);
   const g = growth(data, f, 'expenses');
   const scope = f.year === 'all' ? 'across all years' : `in ${f.year}`;
   const yrLabel = (b) => `${b.label}${f.year === 'all' ? '' : ` ${f.year}`}`;
-  const pick = (title, b) => setDrill({ title, rows: (b._rows || []).filter((r) => r.expenses > 0), cancel: [] });
+  const pick = (title, b) => setDrill({ title, rows: (b._rows || []).filter((r) => r.expenses > 0), cancel: [], overhead: b._overhead || [] });
 
-  const catSeries = CHART_CATEGORIES.map((c) => ({ key: c, name: c, color: COLORS.cats[c] }));
+  const catSeries = cats.map((c) => ({ key: c, name: c, color: catColor(c, cats) }));
   const profitMonths = months.map((m) => ({ ...m, revenueAll: m.total }));
 
   return (
     <div className="page">
       <PageHead title="Expense graphs" sub="See where the money goes: by month, by kind of cost and by season. Click any bar to see the events behind it." />
-      <AnalyticsFilters f={f} setF={setFilters} years={years} settings={state.settings} types={state.settings.eventTypes} yearNote="The season and year comparisons always show every year. The other charts follow the year you pick. Expenses show only for events where you recorded them." />
+      <AnalyticsFilters f={f} setF={setFilters} years={years} settings={state.settings} types={state.settings.eventTypes} yearNote="The season and year comparisons always show every year. The other charts follow the year you pick. Garden costs (from the Expenses page) are included, except when you pick one booking type." />
 
       {nothing ? (
-        <div className="card"><Empty0>No expenses are recorded for this selection. Add expenses on an event's page, or mark staff attendance so labour cost appears.</Empty0></div>
+        <div className="card"><Empty0>No expenses are recorded for this selection. Add garden costs on the Expenses page, add event costs on an event's page, or mark staff attendance so labour cost appears.</Empty0></div>
       ) : (
         <>
           <Highlights items={[
             { label: 'Biggest cost', value: topCat && topCat.value ? topCat.name : '—', sub: topCat && topCat.value ? `${inrShort(topCat.value)} · ${Math.round((topCat.value / totalExp) * 100)}% of expenses` : '' },
             { label: 'Most expensive month', value: priciest && priciest.expenses ? priciest.label : '—', sub: priciest && priciest.expenses ? `${inrShort(priciest.expenses)} ${scope}` : '' },
-            { label: 'Total expenses', value: inrShort(totalExp), sub: `${rowsWithExpense} events ${scope}` },
+            { label: 'Total expenses', value: inrShort(totalExp), sub: `${rowsWithExpense} events${overheadTotal ? ` + ${inrShort(overheadTotal)} garden costs` : ''} ${scope}` },
             { label: 'Change in expenses', value: fmtPct(g.pct), sub: g.pct === null ? 'No earlier year to compare' : g.label, tone: g.pct === null ? '' : g.pct <= 0 ? 'good' : 'bad' },
           ]} />
 
@@ -90,7 +92,7 @@ export default function ExpenseGraphs() {
               <ChartCard
                 title="Cost types, month by month"
                 legend={catSeries}
-                columns={[{ key: 'label', label: 'Month' }, ...CHART_CATEGORIES.map((c) => money(c, c)), money('expenses', 'Total')]}
+                columns={[{ key: 'label', label: 'Month' }, ...cats.map((c) => money(c, c)), money('expenses', 'Total')]}
                 rows={months}
                 csvName="expenses-kind-by-month"
               >
@@ -137,7 +139,7 @@ export default function ExpenseGraphs() {
 
               <ChartCard
                 title="Average expense per event"
-                sub="Total expenses divided by number of events, for each year."
+                sub="Event expenses divided by number of events, for each year. Garden costs are not part of any one event, so they are left out here."
                 columns={[{ key: 'label', label: 'Year' }, money('avgExpense', 'Average expense'), { key: 'events', label: 'Events' }]}
                 rows={perYear}
                 csvName="average-expense-per-event"

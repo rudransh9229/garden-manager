@@ -1,8 +1,23 @@
-import { ATT_FACTOR } from './constants.js';
+import { ATT_FACTOR, LABOUR, expenseCategories } from './constants.js';
+import { addMonths } from './dates.js';
 
 let counter = 0;
 export const newId = (prefix) =>
   `${prefix}${Date.now().toString(36)}${(counter++).toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+
+/** An expense record. bookingId is '' for garden expenses (painting, repairs, yearly bills). paid=false means a bill still to pay. */
+export const makeExpense = (e) => ({
+  bookingId: '', vendor: '', mode: '', note: '', paid: true,
+  ...e,
+  id: e.id || newId('e'),
+});
+
+/** The dates a repeating expense falls on, starting with its own date. */
+export function repeatDates(start, repeat, count) {
+  const step = repeat === 'monthly' ? 1 : repeat === 'quarterly' ? 3 : repeat === 'yearly' ? 12 : 0;
+  const n = step ? Math.max(1, Math.min(60, Math.floor(count) || 1)) : 1;
+  return Array.from({ length: n }, (_, i) => addMonths(start, i * step));
+}
 
 const sumPayments = (state, bookingId) =>
   state.payments.filter((p) => p.bookingId === bookingId).reduce((s, p) => s + p.amount, 0);
@@ -142,9 +157,49 @@ export function reducer(state, action) {
     case 'deletePayment':
       return { ...state, payments: state.payments.filter((p) => p.id !== action.id) };
     case 'addExpense':
-      return { ...state, expenses: [...state.expenses, { id: newId('e'), ...action.expense }] };
+      return { ...state, expenses: [...state.expenses, makeExpense(action.expense)] };
+    case 'addExpenses': {
+      // A garden expense that repeats (rent, insurance, a monthly bill): one ordinary record per date, each editable on its own.
+      const list = (action.expenses || []).map(makeExpense);
+      return list.length ? { ...state, expenses: [...state.expenses, ...list] } : state;
+    }
+    case 'updateExpense': {
+      if (!state.expenses.some((e) => e.id === action.id)) return state;
+      return { ...state, expenses: state.expenses.map((e) => (e.id === action.id ? { ...e, ...action.patch, id: e.id } : e)) };
+    }
     case 'deleteExpense':
       return { ...state, expenses: state.expenses.filter((e) => e.id !== action.id) };
+
+    case 'addExpenseCategory': {
+      const name = String(action.name || '').trim();
+      const cats = expenseCategories(state.settings);
+      if (!name || name.toLowerCase() === LABOUR.toLowerCase() || cats.some((c) => c.toLowerCase() === name.toLowerCase())) return state;
+      return { ...state, settings: { ...state.settings, expenseCategories: [...cats, name] } };
+    }
+    case 'renameExpenseCategory': {
+      const name = String(action.to || '').trim();
+      const cats = expenseCategories(state.settings);
+      if (!name || !cats.includes(action.from) || name.toLowerCase() === LABOUR.toLowerCase()) return state;
+      if (cats.some((c) => c !== action.from && c.toLowerCase() === name.toLowerCase())) return state;
+      return {
+        ...state,
+        settings: { ...state.settings, expenseCategories: cats.map((c) => (c === action.from ? name : c)) },
+        expenses: state.expenses.map((e) => (e.category === action.from ? { ...e, category: name } : e)),
+      };
+    }
+    case 'removeExpenseCategory': {
+      // A category with expenses can only be removed by moving those expenses to another category.
+      const cats = expenseCategories(state.settings);
+      if (cats.length <= 1 || !cats.includes(action.name)) return state;
+      const inUse = state.expenses.some((e) => e.category === action.name);
+      const target = action.moveTo;
+      if (inUse && (!target || target === action.name || !cats.includes(target))) return state;
+      return {
+        ...state,
+        settings: { ...state.settings, expenseCategories: cats.filter((c) => c !== action.name) },
+        expenses: inUse ? state.expenses.map((e) => (e.category === action.name ? { ...e, category: target } : e)) : state.expenses,
+      };
+    }
 
     case 'cancelBooking':
       return cancelBookingIn(state, action);
