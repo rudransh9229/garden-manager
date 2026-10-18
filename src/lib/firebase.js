@@ -25,6 +25,8 @@ export function startFirebase() {
   const auth = getAuth(app);
   const db = initializeFirestore(app, {
     ignoreUndefinedProperties: true,
+    // Some networks cut the live connection to Firestore. This switches to plain request-and-reply instead.
+    experimentalAutoDetectLongPolling: true,
     // Keeps a copy on the device: the app opens fast, works through a short signal loss, and re-opening
     // only downloads what changed, which keeps the free daily read limit far away.
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
