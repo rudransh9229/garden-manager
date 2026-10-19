@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import Splash from './Splash.jsx';
 
 /**
  * Shows the sign-in screen until a family member is signed in AND has been given a role.
@@ -26,7 +27,7 @@ export default function AuthGate({ firebase, children }) {
     return () => { live = false; };
   }, [backend]);
 
-  if (user === undefined) return <Shell><p className="muted">Checking who you are…</p></Shell>;
+  if (user === undefined) return <Splash label="Checking who you are" />;
   if (!user) return <SignIn firebase={firebase} />;
   if (problem === 'NO_ACCESS') {
     return (
@@ -48,7 +49,7 @@ export default function AuthGate({ firebase, children }) {
       </Shell>
     );
   }
-  if (!role) return <Shell><p className="muted">Opening your records…</p></Shell>;
+  if (!role) return <Splash label="Opening your records" />;
   return children(backend);
 }
 

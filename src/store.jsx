@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import Splash from './components/Splash.jsx';
 import { reducer } from './lib/reducer.js';
 import { computeAll } from './lib/calc.js';
 import { buildSeed, emptyState } from './data/seed.js';
@@ -117,11 +118,12 @@ export function StoreProvider({ backend, children }) {
     loadDemo: () => dispatch({ type: 'reset', state: { ...buildSeed(today), role: stateRef.current.role } }),
   }), [state, data, dispatch, act, notify, today, toasts, dismiss, sync, queue, backend]);
 
+  if (!state && !loadError) return <Splash label="Loading your records" />;
   if (!state) {
     return (
       <div className="page">
         <div className="card">
-          <h2>{loadError ? 'Your records could not be loaded' : 'Loading your records…'}</h2>
+          <h2>Your records could not be loaded</h2>
           {loadError && (
             <>
               <p className="muted" style={{ margin: '8px 0 12px' }}>Check your internet connection, then try again. Nothing was changed. ({loadError})</p>

@@ -131,3 +131,4 @@ Update this at the end of every working session. Newest session on top.
 ## Session: phone polish (2026-10-19)
 - Checked every page at 390 and 360 px as owner and manager. Fixed: small tap targets (buttons, links, close X, chart buttons, file inputs), modal height uses 100dvh with a sticky button bar, Expenses table becomes cards on phones, Money page shows Date/Client/Revenue/Profit on phones, client-name placeholder, two-column layouts stack under 1000px.
 - Tests after the changes: npm run check, flows 22/22, crawl clean, phone audit no issues. Not tried on a real phone.
+- Loading screens: new components/Splash.jsx (leaf ring + dots) replaces the plain "Checking who you are / Opening your records / Loading your records" texts; index.html also shows a small spinner before the code loads.
