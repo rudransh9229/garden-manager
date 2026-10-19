@@ -21,6 +21,7 @@ import { readBackup } from '../src/lib/backup.js';
 import { createPeopleApi, makePassword } from '../src/lib/backends/people.js';
 import { createFirestoreFileStore } from '../src/lib/backends/firestoreFiles.js';
 import { repeatDates } from '../src/lib/reducer.js';
+import { fileRefs, keepIds, billFileId } from '../src/lib/filerefs.js';
 import { paiseInWords } from '../src/lib/words.js';
 import { whatsappNumber, reminderText, whatsappLink } from '../src/lib/reminder.js';
 import { addMonths } from '../src/lib/dates.js';
@@ -632,6 +633,20 @@ eq(paiseInWords(250000000), 'Rupees twenty-five lakh only', 'Rs 25 lakh');
 eq(paiseInWords(1000000000), 'Rupees one crore only', 'one crore');
 eq(paiseInWords(50505), 'Rupees five hundred five and five paise only', 'hundreds and paise');
 eq(paiseInWords(0), 'Rupees zero only', 'zero');
+
+console.log('Expense bills (files)');
+{
+  const base = buildSeed('2026-10-19');
+  const e = base.expenses.find((x) => x.bookingId);
+  const withBill = { ...base, expenses: base.expenses.map((x) => (x.id === e.id ? { ...x, hasBill: true, billName: 'bill.jpg', billMime: 'image/jpeg' } : x)) };
+  ok(fileRefs(withBill).some((r) => r.id === billFileId(e) && r.name === 'bill.jpg'), 'an expense with a bill is listed as a stored file');
+  ok(keepIds(withBill).includes(billFileId(e)), 'its file is kept by the clean-up');
+  const gone = reducer(withBill, { type: 'deleteBooking', bookingId: e.bookingId, date: '2026-10-19' });
+  ok(keepIds(gone).includes(billFileId(e)), 'a bill of a booking in the bin is still kept');
+  ok(!keepIds(reducer(gone, { type: 'purgeBin' })).includes(billFileId(e)), 'and is let go once the bin is emptied');
+  const upd = reducer(base, { type: 'updateExpense', id: e.id, patch: { hasBill: true, billName: 'x.pdf' } });
+  eq(upd.expenses.find((x) => x.id === e.id).billName, 'x.pdf', 'a bill can be attached to an existing expense');
+}
 
 console.log('Import helpers');
 eq(parseFlexibleDate('2023-11-04'), '2023-11-04', 'ISO date');

@@ -5,6 +5,7 @@ import { computeAll } from './lib/calc.js';
 import { buildSeed, emptyState } from './data/seed.js';
 import { todayISO } from './lib/dates.js';
 import { purgeOrphans } from './lib/files.js';
+import { keepIds } from './lib/filerefs.js';
 import { applyOps, diffState } from './lib/sync.js';
 import { createWriteQueue } from './lib/writeQueue.js';
 
@@ -51,7 +52,7 @@ export function StoreProvider({ backend, children }) {
       }
       commit(next);
       // Files whose invoice was deleted are cleared away (only day-old ones). A bin copy still counts as in use.
-      if (owner) purgeOrphans([...next.documents, ...next.bin.flatMap((x) => x.snapshot?.documents || [])].map((d) => d.id));
+      if (owner) purgeOrphans(keepIds(next));
     } catch (e) {
       setLoadError(String((e && e.message) || e));
     }

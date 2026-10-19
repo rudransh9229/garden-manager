@@ -393,3 +393,7 @@ textarea { border: 1px solid var(--line-2); border-radius: 9px; padding: 9px 11p
   .receipt-grid { grid-template-columns: 130px 1fr !important; gap: 8px 14px !important; }
   .receipt-grid dt { margin-top: 0 !important; font-size: 15px !important; }
 }
+
+/* A wide file picker must not stretch the form past its card */
+.form-grid > * { min-width: 0; }
+input[type='file'] { max-width: 100%; }

@@ -6,7 +6,9 @@ import { PAYMENT_MODES, REPEATS, catColor, expenseCategories } from '../lib/cons
 import { downloadText, toCSV } from '../lib/csv.js';
 import { isValidISO, parseISO } from '../lib/dates.js';
 import { fmtDate, inr, inrShort, MONTHS_LONG, plural, toPaise, toRupeesInput } from '../lib/format.js';
-import { repeatDates } from '../lib/reducer.js';
+import { newId, repeatDates } from '../lib/reducer.js';
+import { openStored, prepareFile, putFile } from '../lib/files.js';
+import { billFileId } from '../lib/filerefs.js';
 
 const NEW_CATEGORY = '__new__';
 
@@ -15,7 +17,7 @@ const NEW_CATEGORY = '__new__';
  * Costs for one event are still entered on that event; this page is where garden-wide costs are entered and everything is searched.
  */
 export default function Expenses() {
-  const { state, data, dispatch, act, today } = useStore();
+  const { state, data, dispatch, act, notify, today } = useStore();
   const cats = expenseCategories(state.settings);
   const thisYear = Number(today.slice(0, 4));
   const [year, setYear] = useState(thisYear);
@@ -166,6 +168,7 @@ export default function Expenses() {
                         <td className="c-for">{x.row ? <Link to={`/events/${x.row.id}`}>{x.forWhat}</Link> : x.e.bookingId ? <span className="muted">Removed event</span> : 'Garden'}</td>
                         <td className="c-amt right num" style={{ fontWeight: 600 }}>{inr(x.amount)}</td>
                         <td className="c-act" style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+                          {x.e.hasBill && <button className="btn small" onClick={() => openStored(billFileId(x.e), x.e.billName || 'bill').then((ok) => !ok && notify('The bill file was not found.')).catch(() => notify('The bill could not be opened. Check your connection.'))}>Bill</button>}{' '}
                           {!x.paid && <button className="btn small" onClick={() => act({ type: 'updateExpense', id: x.id, patch: { paid: true } }, `${inr(x.amount)} marked as paid`)}>Mark paid</button>}{' '}
                           <button className="btn small" onClick={() => setEditing(x.e)}>Edit</button>{' '}
                           <button className="btn small danger" onClick={() => setRemoving(x)} aria-label={`Remove expense of ${inr(x.amount)}`}>Remove</button>
@@ -225,6 +228,11 @@ function ExpenseForm({ expense, cats, vendors, today, onClose, onSave, onNewCate
     count: '12',
   }));
   const [touched, setTouched] = useState(false);
+  const [file, setFile] = useState(null); // a new bill picked in this form, already shrunk
+  const [fileErr, setFileErr] = useState('');
+  const [dropBill, setDropBill] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const newId_ = useState(() => newId('e'))[0];
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   const amt = toPaise(f.amount);
   const creating = f.category === NEW_CATEGORY;
@@ -239,18 +247,33 @@ function ExpenseForm({ expense, cats, vendors, today, onClose, onSave, onNewCate
   const invalid = Object.values(errors).some(Boolean);
   const dates = !editing && f.repeat !== 'none' && isValidISO(f.date) ? repeatDates(f.date, f.repeat, Number(f.count)) : [f.date];
 
-  const save = () => {
+  const pick = async (picked) => {
+    setFileErr('');
+    if (!picked) return;
+    try { setFile(await prepareFile(picked)); setDropBill(false); } catch (e) { setFile(null); setFileErr(e.message); }
+  };
+
+  const save = async () => {
     setTouched(true);
-    if (invalid) return;
+    if (invalid || busy) return;
     let category = f.category;
     if (creating) { onNewCategory(newName); category = newName; }
     const fields = { category, amount: amt, vendor: f.vendor.trim(), mode: f.mode, note: f.note.trim(), paid: f.paid };
+    const id = editing ? expense.id : newId_;
+    let bill = {};
+    if (file && (editing || dates.length === 1)) {
+      setBusy(true);
+      try { await putFile(billFileId({ id }), file.blob); } catch { setBusy(false); setFileErr('The bill could not be saved. Check your connection and try again.'); return; }
+      bill = { hasBill: true, billName: file.name, billMime: file.type, billSize: file.size };
+    } else if (editing && dropBill) {
+      bill = { hasBill: false, billName: '', billMime: '', billSize: 0 };
+    }
     if (editing) {
-      onSave({ type: 'updateExpense', id: expense.id, patch: { ...fields, date: f.date } }, `${inr(amt)} expense saved`);
+      onSave({ type: 'updateExpense', id: expense.id, patch: { ...fields, ...bill, date: f.date } }, `${inr(amt)} expense saved`);
     } else if (dates.length > 1) {
       onSave({ type: 'addExpenses', expenses: dates.map((d, i) => ({ ...fields, bookingId: '', date: d, paid: i === 0 ? f.paid : false })) }, `${dates.length} expenses of ${inr(amt)} added`);
     } else {
-      onSave({ type: 'addExpense', expense: { ...fields, bookingId: '', date: f.date } }, `${inr(amt)} expense added`);
+      onSave({ type: 'addExpense', expense: { ...fields, ...bill, id, bookingId: '', date: f.date } }, `${inr(amt)} expense added`);
     }
   };
 
@@ -258,7 +281,7 @@ function ExpenseForm({ expense, cats, vendors, today, onClose, onSave, onNewCate
     <Modal
       title={editing ? 'Edit expense' : 'Add an expense'}
       onClose={onClose}
-      footer={<><button className="btn" onClick={onClose}>Cancel</button><button className="btn primary" onClick={save}>{editing ? 'Save changes' : dates.length > 1 ? `Add ${dates.length} expenses` : 'Add expense'}</button></>}
+      footer={<><button className="btn" onClick={onClose}>Cancel</button><button className="btn primary" onClick={save} disabled={busy}>{busy ? 'Saving…' : editing ? 'Save changes' : dates.length > 1 ? `Add ${dates.length} expenses` : 'Add expense'}</button></>}
     >
       {isEvent && <p className="small muted" style={{ marginBottom: 12 }}>This cost belongs to an event, so it stays with that event.</p>}
       <div className="form-grid">
@@ -288,6 +311,20 @@ function ExpenseForm({ expense, cats, vendors, today, onClose, onSave, onNewCate
           </select>
         </Field>
         <Field label="Note" full><input type="text" value={f.note} onChange={set('note')} placeholder="Optional, for example front gate and boundary wall" /></Field>
+        {(editing || dates.length === 1) && (
+          <Field label="Bill or receipt" hint="A photo or PDF of the bill. Photos are made smaller to save space." full>
+            {expense?.hasBill && !dropBill && !file && (
+              <div className="row" style={{ gap: 8, marginBottom: 6 }}>
+                <span className="small">{expense.billName || 'Bill'}</span>
+                <button type="button" className="btn small" onClick={() => openStored(billFileId(expense), expense.billName || 'bill').then((ok) => !ok && setFileErr('The bill file was not found.')).catch(() => setFileErr('The bill could not be opened. Check your connection.'))}>Open</button>
+                <button type="button" className="btn small danger" onClick={() => setDropBill(true)}>Remove</button>
+              </div>
+            )}
+            {file && <div className="small" style={{ marginBottom: 6 }}>{file.name} ({Math.max(1, Math.round(file.size / 1024))} KB) <button type="button" className="btn small" onClick={() => setFile(null)}>Clear</button></div>}
+            <input type="file" accept="application/pdf,image/*" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }} />
+            {fileErr && <div className="small" role="alert" style={{ color: 'var(--red)', marginTop: 4 }}>{fileErr}</div>}
+          </Field>
+        )}
         {!editing && (
           <>
             <Field label="Repeat" hint="For rent, insurance, monthly bills. Each date becomes its own expense you can edit.">
