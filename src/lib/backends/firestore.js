@@ -101,7 +101,13 @@ export function createFirestoreBackend({ db, fs, uid, today = '', loadTimeoutMs 
             });
             deliver(ops);
           },
-          (err) => { if (first) { first = false; reject(err); } },
+          (err) => {
+            if (!first) return;
+            first = false;
+            // The bin is an extra. If the database rules were not updated yet, open the app anyway instead of failing to load.
+            if (name === 'bin' && err && err.code === 'permission-denied') { resolve(); return; }
+            reject(err);
+          },
         );
         stops.push(stop);
       })));
