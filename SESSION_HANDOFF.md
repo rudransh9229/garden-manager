@@ -132,3 +132,8 @@ Update this at the end of every working session. Newest session on top.
 - Checked every page at 390 and 360 px as owner and manager. Fixed: small tap targets (buttons, links, close X, chart buttons, file inputs), modal height uses 100dvh with a sticky button bar, Expenses table becomes cards on phones, Money page shows Date/Client/Revenue/Profit on phones, client-name placeholder, two-column layouts stack under 1000px.
 - Tests after the changes: npm run check, flows 22/22, crawl clean, phone audit no issues. Not tried on a real phone.
 - Loading screens: new components/Splash.jsx (leaf ring + dots) replaces the plain "Checking who you are / Opening your records / Loading your records" texts; index.html also shows a small spinner before the code loads.
+
+## Session: Bin (2026-10-19)
+- Deleting a booking now moves it to the Bin (new page /bin, owner only; 30 days, Put back / Delete for good / Empty). New owner-only collection `bin` (sync.js COLLECTIONS, split.js OWNER_ONLY, firestore.rules). Old data without `bin` is normalised on load. Backup and file clean-up count bin invoices.
+- OWNER MUST re-paste firestore.rules in the Firebase console, or deleting will fail to save.
+- Next in plan (user said "do 2, 3, 4 one by one"): WhatsApp reminders, printable receipt, receipt photos on expenses, category budgets, backup reminder; then looks (logo, dashboard top), then weak spots (real-Firebase checks).

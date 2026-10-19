@@ -13,7 +13,7 @@ export const SPLIT = {
 export const PRIVATE_COLLECTIONS = Object.values(SPLIT).map((s) => s.coll);
 
 /** Collections only owners can read or write at all. */
-export const OWNER_ONLY = ['payments', 'expenses', 'cancellations', 'documents', 'files', 'fileParts'];
+export const OWNER_ONLY = ['payments', 'expenses', 'cancellations', 'documents', 'bin', 'files', 'fileParts'];
 /** What the manager can read, and of those, what they can also change (marking attendance, adding a staff name). */
 export const MANAGER_READS = ['clients', 'bookings', 'staff', 'attendance', 'settings'];
 export const MANAGER_WRITES = ['staff', 'attendance'];

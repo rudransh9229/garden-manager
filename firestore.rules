@@ -19,6 +19,7 @@ service cloud.firestore {
     // Money, invoices and private contact details: owners only.
     match /payments/{id}          { allow read, write: if isOwner(); }
     match /expenses/{id}          { allow read, write: if isOwner(); }
+    match /bin/{id}               { allow read, write: if isOwner(); }
     match /cancellations/{id}     { allow read, write: if isOwner(); }
     match /documents/{id}         { allow read, write: if isOwner(); }
     match /files/{id}             { allow read, write: if isOwner(); }

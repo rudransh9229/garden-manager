@@ -47,7 +47,7 @@ A private management web app for a marriage garden (wedding venue), used by the 
 - Role rule: the Manager never sees prices, payments, revenue, profit or client documents. Enforce in database rules, not only in the UI.
 - Imported historical records are tagged "Imported" and never silently overwritten.
 - Cancel is for a client who cancels: it keeps the record and the kept advance, and every cancel/restore/edit is logged.
-- Delete is for entries made by mistake (the owner asked for it): it asks first, removes the booking with its payments, expenses, attendance and invoices, and offers Undo. Only owners can delete.
+- Delete is for entries made by mistake (the owner asked for it): it asks first, takes the booking with its payments, expenses, attendance and invoices out of the app, and keeps a copy in the Bin (`state.bin`, owner-only collection `bin`) for 30 days; Put back restores everything. Also offers Undo. Only owners can delete.
 - Only Confirmed and Completed bookings count as revenue. Enquiry and Tentative never do.
 - Booking types come from `settings.eventTypes`. Never hard-code a list of types. A type in use can only be removed by moving its bookings to another type.
 - Garden expenses are expenses with `bookingId: ''`. Never add them to an event's profit; they count in totals/graphs by their own date. `paid: false` means a bill still to pay (only counted as owed when dated today or earlier). The word "Labour" is reserved for attendance wages.

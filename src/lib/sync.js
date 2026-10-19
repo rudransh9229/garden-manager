@@ -5,14 +5,14 @@
 // A write is { op: 'set', collection, id, data } or { op: 'delete', collection, id }.
 // If two devices change the same record, the later write wins. Different records never clash.
 
-export const COLLECTIONS = ['clients', 'bookings', 'payments', 'expenses', 'cancellations', 'staff', 'attendance', 'documents'];
+export const COLLECTIONS = ['clients', 'bookings', 'payments', 'expenses', 'cancellations', 'staff', 'attendance', 'documents', 'bin'];
 const KEY_FIELD = { cancellations: 'bookingId' }; // one cancellation per booking; everything else has an id
 export const keyOf = (collection, item) => String(item[KEY_FIELD[collection] || 'id']);
 
 export const emptyData = (settings = null) => ({
   version: 1,
   settings,
-  clients: [], bookings: [], payments: [], expenses: [], cancellations: [], staff: [], attendance: [], documents: [],
+  clients: [], bookings: [], payments: [], expenses: [], cancellations: [], staff: [], attendance: [], documents: [], bin: [],
 });
 
 const same = (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b);
@@ -21,8 +21,8 @@ const same = (a, b) => a === b || JSON.stringify(a) === JSON.stringify(b);
 export function diffState(prev, next) {
   const ops = [];
   for (const c of COLLECTIONS) {
-    const a = prev[c];
-    const b = next[c];
+    const a = prev[c] || [];
+    const b = next[c] || [];
     if (a === b) continue;
     const before = new Map(a.map((x) => [keyOf(c, x), x]));
     const seen = new Set();
@@ -55,7 +55,7 @@ export function applyOps(state, ops) {
       continue;
     }
     if (!COLLECTIONS.includes(c)) continue;
-    const map = new Map(out[c].map((x) => [keyOf(c, x), x]));
+    const map = new Map((out[c] || []).map((x) => [keyOf(c, x), x]));
     for (const o of list) {
       if (o.op === 'set') map.set(o.id, o.data);
       else map.delete(o.id);
@@ -79,8 +79,8 @@ export function coalesce(ops) {
 /** True when two datasets hold the same records, whatever their order. */
 export function sameData(a, b) {
   for (const c of COLLECTIONS) {
-    if (a[c].length !== b[c].length) return false;
-    const norm = (s) => [...s[c]].sort((x, y) => (keyOf(c, x) < keyOf(c, y) ? -1 : 1)).map((x) => JSON.stringify(x));
+    if ((a[c] || []).length !== (b[c] || []).length) return false;
+    const norm = (s) => [...(s[c] || [])].sort((x, y) => (keyOf(c, x) < keyOf(c, y) ? -1 : 1)).map((x) => JSON.stringify(x));
     const na = norm(a);
     const nb = norm(b);
     if (na.some((v, i) => v !== nb[i])) return false;

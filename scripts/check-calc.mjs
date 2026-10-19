@@ -582,6 +582,32 @@ console.log('Garden expenses and the balance sheet');
   ok(bytes.length > 4000, `the Excel file is ${bytes.length} bytes`);
 }
 
+console.log('Bin (deleted bookings can be put back)');
+{
+  const base = buildSeed('2026-10-19');
+  const victim = base.bookings.find((b) => base.payments.some((p) => p.bookingId === b.id) && base.expenses.some((e) => e.bookingId === b.id));
+  const del = reducer(base, { type: 'deleteBooking', bookingId: victim.id, date: '2026-10-19' });
+  ok(!del.bookings.some((b) => b.id === victim.id) && del.bin.length === 1, 'deleting moves the booking to the bin');
+  ok(!del.payments.some((p) => p.bookingId === victim.id), 'its payments leave the live data (so money totals drop)');
+  const back = reducer(del, { type: 'restoreDeleted', id: victim.id });
+  eq(back.bin.length, 0, 'putting back empties that bin entry');
+  ok(sameData({ ...back, bin: [] }, { ...base, bin: [] }), 'putting back restores bookings, client, payments, expenses, attendance and invoices exactly');
+  const again = reducer(back, { type: 'restoreDeleted', id: victim.id });
+  ok(again === back, 'restoring twice does nothing');
+  eq(reducer(del, { type: 'purgeBin', today: '2026-11-17' }).bin.length, 1, 'still kept after 29 days');
+  eq(reducer(del, { type: 'purgeBin', today: '2026-11-19' }).bin.length, 0, 'forgotten after 30 days');
+  eq(reducer(del, { type: 'purgeBin', id: victim.id }).bin.length, 0, 'delete for good removes one entry');
+  eq(reducer(del, { type: 'purgeBin' }).bin.length, 0, 'empty the bin removes all');
+  const ops = diffState(base, del);
+  ok(ops.some((o) => o.collection === 'bin' && o.op === 'set'), 'the bin entry is written to the backend');
+  const rebuilt = applyOps(base, ops);
+  ok(sameData(rebuilt, del), 'applying those writes gives the same data');
+  ok(applyOps({ ...base, bin: undefined }, ops).bin.length === 1, 'older saved data without a bin still loads');
+  // a client with a second booking stays put
+  const other = base.bookings.find((b) => b.id !== victim.id && b.clientId === victim.clientId);
+  if (other) ok(del.clients.some((c) => c.id === victim.clientId), 'a client with other bookings stays');
+}
+
 console.log('Import helpers');
 eq(parseFlexibleDate('2023-11-04'), '2023-11-04', 'ISO date');
 eq(parseFlexibleDate('04/11/2023'), '2023-11-04', 'DD/MM/YYYY');

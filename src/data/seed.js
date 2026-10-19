@@ -42,7 +42,7 @@ export function defaultSettings() {
 export function emptyState(settings = defaultSettings(), today = '') {
   return {
     version: 1, role: 'owner', seededOn: today, settings,
-    clients: [], bookings: [], payments: [], expenses: [], cancellations: [], staff: [], attendance: [], documents: [],
+    clients: [], bookings: [], payments: [], expenses: [], cancellations: [], staff: [], attendance: [], documents: [], bin: [],
   };
 }
 
@@ -210,6 +210,6 @@ export function buildSeed(today) {
     role: 'owner',
     seededOn: today,
     settings: defaultSettings(),
-    clients, bookings, payments, expenses, cancellations, staff, attendance, documents,
+    clients, bookings, payments, expenses, cancellations, staff, attendance, documents, bin: [],
   };
 }

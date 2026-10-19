@@ -41,13 +41,21 @@ export function StoreProvider({ backend, children }) {
     setLoadError('');
     try {
       const loaded = await backend.load();
-      commit({ ...loaded.state, role: loaded.role || loaded.state.role || 'owner' });
-      // Files whose invoice was deleted are cleared away (online, only by an owner, and only day-old ones).
-      if (backend.name === 'browser' || (backend.name === 'firestore' && loaded.role === 'owner')) purgeOrphans(loaded.state.documents.map((d) => d.id));
+      const role = loaded.role || loaded.state.role || 'owner';
+      let next = { ...loaded.state, bin: loaded.state.bin || [], role };
+      const owner = backend.name === 'browser' || (backend.name === 'firestore' && loaded.role === 'owner');
+      if (owner) {
+        // Bin entries older than 30 days are forgotten for good. Their invoice files go with them.
+        const purged = reducer(next, { type: 'purgeBin', today: todayISO() });
+        if (purged !== next) { queue.push(diffState(next, purged)); next = purged; }
+      }
+      commit(next);
+      // Files whose invoice was deleted are cleared away (only day-old ones). A bin copy still counts as in use.
+      if (owner) purgeOrphans([...next.documents, ...next.bin.flatMap((x) => x.snapshot?.documents || [])].map((d) => d.id));
     } catch (e) {
       setLoadError(String((e && e.message) || e));
     }
-  }, [backend, commit]);
+  }, [backend, commit, queue]);
   useEffect(() => { load(); }, [load]);
 
   const loaded = state !== null;

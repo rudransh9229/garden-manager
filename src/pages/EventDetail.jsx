@@ -38,7 +38,7 @@ export default function EventDetail() {
   const paidPct = b.total > 0 ? Math.min(100, Math.round((row.received / b.total) * 100)) : 0;
 
   const remove = () => {
-    act({ type: 'deleteBooking', bookingId: id }, `Booking for ${row.client.name} deleted`);
+    act({ type: 'deleteBooking', bookingId: id, date: today }, `Booking for ${row.client.name} moved to the bin`);
     nav('/events');
   };
 

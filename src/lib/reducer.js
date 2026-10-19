@@ -1,5 +1,8 @@
 import { ATT_FACTOR, LABOUR, expenseCategories } from './constants.js';
-import { addMonths } from './dates.js';
+import { addMonths, diffDays } from './dates.js';
+
+/** How long a deleted booking waits in the bin. */
+export const BIN_DAYS = 30;
 
 let counter = 0;
 export const newId = (prefix) =>
@@ -74,7 +77,7 @@ export function cancelBookingIn(state, { bookingId, choice, kept, reason, date, 
 export function reducer(state, action) {
   switch (action.type) {
     case 'reset':
-      return action.state;
+      return { bin: [], ...action.state };
     case 'setRole':
       return { ...state, role: action.role };
 
@@ -103,12 +106,30 @@ export function reducer(state, action) {
       return { ...state, clients: state.clients.map((c) => (c.id === action.id ? { ...c, ...action.fields } : c)) };
 
     case 'deleteBooking': {
-      // Removes the booking and everything that hangs off it. The screen asks first and offers Undo.
+      // Takes the booking and everything that hangs off it out of the app, but keeps a copy in the bin for
+      // BIN_DAYS days so a wrong delete can be put back. The screen asks first and also offers Undo.
       const b = state.bookings.find((x) => x.id === action.bookingId);
       if (!b) return state;
       const id = b.id;
       const bookings = state.bookings.filter((x) => x.id !== id);
       const clientStillUsed = bookings.some((x) => x.clientId === b.clientId);
+      const client = state.clients.find((c) => c.id === b.clientId) || null;
+      const entry = {
+        id,
+        deletedAt: action.date || '',
+        name: client ? client.name : '',
+        date: b.date,
+        eventType: b.eventType || '',
+        snapshot: {
+          booking: b,
+          client: clientStillUsed ? null : client, // a client who has other bookings stays where they are
+          payments: state.payments.filter((p) => p.bookingId === id),
+          expenses: state.expenses.filter((e) => e.bookingId === id),
+          attendance: state.attendance.filter((a) => a.bookingId === id),
+          documents: state.documents.filter((d) => d.bookingId === id),
+          cancellations: state.cancellations.filter((c) => c.bookingId === id),
+        },
+      };
       return {
         ...state,
         bookings,
@@ -118,7 +139,38 @@ export function reducer(state, action) {
         attendance: state.attendance.filter((a) => a.bookingId !== id),
         documents: state.documents.filter((d) => d.bookingId !== id),
         cancellations: state.cancellations.filter((c) => c.bookingId !== id),
+        bin: [...(state.bin || []).filter((x) => x.id !== id), entry],
       };
+    }
+    case 'restoreDeleted': {
+      const entry = (state.bin || []).find((x) => x.id === action.id);
+      if (!entry) return state;
+      const bin = state.bin.filter((x) => x.id !== action.id);
+      const sn = entry.snapshot;
+      if (state.bookings.some((x) => x.id === sn.booking.id)) return { ...state, bin };
+      const has = (list, k) => new Set(list.map((x) => x[k]));
+      const clientIds = has(state.clients, 'id');
+      const payIds = has(state.payments, 'id'), expIds = has(state.expenses, 'id'), attIds = has(state.attendance, 'id'), docIds = has(state.documents, 'id');
+      const cancelled = has(state.cancellations, 'bookingId');
+      return {
+        ...state,
+        bin,
+        bookings: [...state.bookings, sn.booking],
+        clients: sn.client && !clientIds.has(sn.client.id) ? [...state.clients, sn.client] : state.clients,
+        payments: [...state.payments, ...sn.payments.filter((x) => !payIds.has(x.id))],
+        expenses: [...state.expenses, ...sn.expenses.filter((x) => !expIds.has(x.id))],
+        attendance: [...state.attendance, ...sn.attendance.filter((x) => !attIds.has(x.id))],
+        documents: [...state.documents, ...sn.documents.filter((x) => !docIds.has(x.id))],
+        cancellations: [...state.cancellations, ...sn.cancellations.filter((x) => !cancelled.has(x.bookingId))],
+      };
+    }
+    case 'purgeBin': {
+      // Forgets bin entries for good: one by one (id), all of them (ids omitted), or the ones older than BIN_DAYS.
+      const bin = state.bin || [];
+      const keep = action.id ? bin.filter((x) => x.id !== action.id)
+        : action.today ? bin.filter((x) => !x.deletedAt || diffDays(action.today, x.deletedAt) <= BIN_DAYS)
+          : [];
+      return keep.length === bin.length ? state : { ...state, bin: keep };
     }
 
     case 'addEventType': {

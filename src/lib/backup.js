@@ -7,7 +7,7 @@ const safe = (s) => String(s || 'file').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 
 export async function buildBackup(state) {
   const entries = [{ name: 'records.json', data: new TextEncoder().encode(JSON.stringify(state, null, 2)) }];
   const missing = [];
-  for (const d of state.documents) {
+  for (const d of [...state.documents, ...(state.bin || []).flatMap((x) => x.snapshot?.documents || [])]) {
     if (!d.hasFile) continue;
     let blob;
     try { blob = await getFile(d.id); } catch { blob = null; }
@@ -32,7 +32,7 @@ export async function readBackup(file) {
 /** Puts the backup's files back into the file store. Returns how many could not be stored. */
 export async function restoreFiles(state, files) {
   let failed = 0;
-  const mime = new Map(state.documents.map((d) => [d.id, d.mime]));
+  const mime = new Map([...state.documents, ...(state.bin || []).flatMap((x) => x.snapshot?.documents || [])].map((d) => [d.id, d.mime]));
   for (const f of files) {
     try { await putFile(f.id, new Blob([f.bytes], { type: mime.get(f.id) || '' })); } catch { failed += 1; }
   }

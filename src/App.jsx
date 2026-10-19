@@ -17,12 +17,13 @@ import Settings from './pages/Settings.jsx';
 import People from './pages/People.jsx';
 import Expenses from './pages/Expenses.jsx';
 import BalanceSheet from './pages/BalanceSheet.jsx';
+import Bin from './pages/Bin.jsx';
 
 const OWNER_NAV = [
   { group: 'Run the garden', items: [['/', 'Dashboard', 'home'], ['/calendar', 'Calendar', 'calendar'], ['/events', 'Events and search', 'search'], ['/invoices', 'Invoices', 'file']] },
   { group: 'Money', items: [['/money', 'Revenue and profit', 'rupee'], ['/costs', 'Expenses', 'receipt'], ['/balance-sheet', 'Balance sheet', 'scale'], ['/revenue', 'Revenue graphs', 'bars'], ['/expenses', 'Expense graphs', 'pie']] },
   { group: 'Team', items: [['/attendance', 'Attendance', 'check'], ['/staff', 'Staff', 'users']] },
-  { group: 'Set up', items: [['/import', 'Import old records', 'upload'], ['/settings', 'Settings', 'gear']] },
+  { group: 'Set up', items: [['/import', 'Import old records', 'upload'], ['/bin', 'Bin', 'trash'], ['/settings', 'Settings', 'gear']] },
 ];
 // The manager runs the day: no prices, payments, revenue, profit or invoices.
 const MANAGER_NAV = [
@@ -159,6 +160,7 @@ export default function App() {
             <Route path="/expenses" element={<OwnerOnly><ExpenseGraphs /></OwnerOnly>} />
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/staff" element={<Staff />} />
+            <Route path="/bin" element={<OwnerOnly><Bin /></OwnerOnly>} />
             <Route path="/import" element={<OwnerOnly><Import /></OwnerOnly>} />
             <Route path="/settings" element={<OwnerOnly><Settings /></OwnerOnly>} />
             {people && <Route path="/people" element={<OwnerOnly><People /></OwnerOnly>} />}
