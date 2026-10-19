@@ -18,6 +18,7 @@ import People from './pages/People.jsx';
 import Expenses from './pages/Expenses.jsx';
 import BalanceSheet from './pages/BalanceSheet.jsx';
 import Bin from './pages/Bin.jsx';
+import Receipt from './pages/Receipt.jsx';
 
 const OWNER_NAV = [
   { group: 'Run the garden', items: [['/', 'Dashboard', 'home'], ['/calendar', 'Calendar', 'calendar'], ['/events', 'Events and search', 'search'], ['/invoices', 'Invoices', 'file']] },
@@ -160,6 +161,7 @@ export default function App() {
             <Route path="/expenses" element={<OwnerOnly><ExpenseGraphs /></OwnerOnly>} />
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/staff" element={<Staff />} />
+            <Route path="/receipt/:paymentId" element={<OwnerOnly><Receipt /></OwnerOnly>} />
             <Route path="/bin" element={<OwnerOnly><Bin /></OwnerOnly>} />
             <Route path="/import" element={<OwnerOnly><Import /></OwnerOnly>} />
             <Route path="/settings" element={<OwnerOnly><Settings /></OwnerOnly>} />

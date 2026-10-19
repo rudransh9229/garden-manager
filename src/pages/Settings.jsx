@@ -5,10 +5,14 @@ import { buildBackup, readBackup, restoreFiles } from '../lib/backup.js';
 import { MONTHS } from '../lib/format.js';
 import { plural } from '../lib/format.js';
 import { expenseCategories } from '../lib/constants.js';
+import { DEFAULT_REMINDER, reminderText } from '../lib/reminder.js';
+import { addDays, todayISO } from '../lib/dates.js';
 
 export default function Settings() {
   const { state, dispatch, notify, startFresh, loadDemo, today, canLoadDemo, backendName } = useStore();
   const [name, setName] = useState(state.settings.gardenName);
+  const [addr, setAddr] = useState(state.settings.gardenAddress || '');
+  const [gphone, setGphone] = useState(state.settings.gardenPhone || '');
 
   return (
     <div className="page">
@@ -20,7 +24,13 @@ export default function Settings() {
             <Field label="Garden name"><input type="text" value={name} onChange={(e) => setName(e.target.value)} style={{ minWidth: 260 }} /></Field>
             <button className="btn" style={{ marginBottom: 12 }} disabled={!name.trim() || name.trim() === state.settings.gardenName} onClick={() => { dispatch({ type: 'setSettings', fields: { gardenName: name.trim() } }); notify('Name saved'); }}>Save</button>
           </div>
+          <div className="row" style={{ alignItems: 'flex-end' }}>
+            <Field label="Address on receipts"><input type="text" value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Optional" style={{ minWidth: 260 }} /></Field>
+            <Field label="Phone on receipts"><input type="text" value={gphone} onChange={(e) => setGphone(e.target.value)} placeholder="Optional" /></Field>
+            <button className="btn" style={{ marginBottom: 12 }} disabled={addr.trim() === (state.settings.gardenAddress || '') && gphone.trim() === (state.settings.gardenPhone || '')} onClick={() => { dispatch({ type: 'setSettings', fields: { gardenAddress: addr.trim(), gardenPhone: gphone.trim() } }); notify('Receipt details saved'); }}>Save</button>
+          </div>
         </section>
+        <Reminder />
         <BookingTypes />
         <ExpenseCategories />
         <Seasons />
@@ -306,6 +316,24 @@ function Data({ today, state, dispatch, notify, startFresh, loadDemo, canLoadDem
           <p><b>{ask.name}</b> holds {plural(ask.state.bookings.length, 'booking')} and {plural(ask.files.length, 'invoice file')}. It replaces everything you have now.</p>
         </Confirm>
       )}
+    </section>
+  );
+}
+
+function Reminder() {
+  const { state, dispatch, notify } = useStore();
+  const saved = state.settings.reminderText || DEFAULT_REMINDER;
+  const [text, setText] = useState(saved);
+  const sample = { client: { name: 'Sharma' }, booking: { date: addDays(todayISO(), 20) }, eventType: 'Wedding', pending: 12500000 };
+  return (
+    <section className="card">
+      <div className="card-head"><div><h2>Payment reminder message</h2><p>The WhatsApp message sent from the "WhatsApp reminder" button on an event with money still due. You can change the words. Keep the parts in curly brackets: {'{name} {amount} {date} {event} {garden}'}.</p></div></div>
+      <Field label="Message"><textarea rows={4} value={text} onChange={(e) => setText(e.target.value)} style={{ width: '100%' }} /></Field>
+      <p className="small muted" style={{ marginBottom: 10 }}><b>How it looks:</b> {reminderText(text, sample, state.settings.gardenName)}</p>
+      <div className="row">
+        <button className="btn" disabled={!text.trim() || text.trim() === saved} onClick={() => { dispatch({ type: 'setSettings', fields: { reminderText: text.trim() } }); notify('Reminder message saved'); }}>Save</button>
+        <button className="btn" disabled={text === DEFAULT_REMINDER && !state.settings.reminderText} onClick={() => { setText(DEFAULT_REMINDER); dispatch({ type: 'setSettings', fields: { reminderText: '' } }); notify('Back to the standard message'); }}>Use the standard message</button>
+      </div>
     </section>
   );
 }

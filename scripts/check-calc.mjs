@@ -21,6 +21,8 @@ import { readBackup } from '../src/lib/backup.js';
 import { createPeopleApi, makePassword } from '../src/lib/backends/people.js';
 import { createFirestoreFileStore } from '../src/lib/backends/firestoreFiles.js';
 import { repeatDates } from '../src/lib/reducer.js';
+import { paiseInWords } from '../src/lib/words.js';
+import { whatsappNumber, reminderText, whatsappLink } from '../src/lib/reminder.js';
 import { addMonths } from '../src/lib/dates.js';
 import { expenseCategories, DEFAULT_EXPENSE_CATEGORIES } from '../src/lib/constants.js';
 import { buildStatement, periodRange, periodYears, statementWorkbook } from '../src/lib/balance.js';
@@ -607,6 +609,29 @@ console.log('Bin (deleted bookings can be put back)');
   const other = base.bookings.find((b) => b.id !== victim.id && b.clientId === victim.clientId);
   if (other) ok(del.clients.some((c) => c.id === victim.clientId), 'a client with other bookings stays');
 }
+
+console.log('WhatsApp reminders');
+{
+  const row = { client: { name: 'Sharma', phone: '9876543210' }, booking: { date: '2026-11-20' }, eventType: 'Wedding', pending: 12500000, counted: true };
+  eq(whatsappNumber('98765 43210'), '919876543210', '10-digit number gets the India code');
+  eq(whatsappNumber('+91 98765-43210'), '919876543210', 'a number typed with +91 works');
+  eq(whatsappNumber('09876543210'), '919876543210', 'a leading 0 is dropped');
+  eq(whatsappNumber('12345'), null, 'a too-short number gives no link');
+  const txt = reminderText('', row, 'Shiv Garden');
+  ok(txt.includes('Sharma') && txt.includes('1,25,000') && txt.includes('20 Nov 2026') && txt.includes('wedding') && txt.includes('Shiv Garden') && !txt.includes('{'), 'the standard message is filled in');
+  eq(reminderText('Hi {name} {unknown}', row, 'G'), 'Hi Sharma {unknown}', 'unknown words are left alone');
+  ok(whatsappLink(row, 'G').startsWith('https://wa.me/919876543210?text='), 'the link opens WhatsApp for that number');
+  eq(whatsappLink({ ...row, client: { name: 'X', phone: '' } }, 'G'), null, 'no phone number, no link');
+}
+
+console.log('Receipts: amount in words');
+eq(paiseInWords(12500000), 'Rupees one lakh twenty-five thousand only', 'Rs 1,25,000 in words');
+eq(paiseInWords(4300000), 'Rupees forty-three thousand only', 'Rs 43,000 in words');
+eq(paiseInWords(10000000), 'Rupees one lakh only', 'exactly one lakh');
+eq(paiseInWords(250000000), 'Rupees twenty-five lakh only', 'Rs 25 lakh');
+eq(paiseInWords(1000000000), 'Rupees one crore only', 'one crore');
+eq(paiseInWords(50505), 'Rupees five hundred five and five paise only', 'hundreds and paise');
+eq(paiseInWords(0), 'Rupees zero only', 'zero');
 
 console.log('Import helpers');
 eq(parseFlexibleDate('2023-11-04'), '2023-11-04', 'ISO date');

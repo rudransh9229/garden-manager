@@ -1,3 +1,4 @@
+import ReminderButton from '../components/ReminderButton.jsx';
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../store.jsx';
@@ -63,6 +64,7 @@ export default function EventDetail() {
         </div>
         {isOwner && (
           <div className="page-actions">
+            <ReminderButton row={row} />
             <button className="btn" onClick={() => ui.editBooking(row)}>Edit</button>
             {cancelled ? (
               cancel && <button className="btn primary" onClick={() => act({ type: 'restoreBooking', bookingId: id, date: today }, 'Booking restored')}>Restore booking</button>
@@ -225,6 +227,7 @@ function PaymentsCard({ id, payments, total }) {
                 <div className="t num">{inr(p.amount)}</div>
                 <div className="small muted">{fmtDate(p.date)} · {p.mode}{p.note ? ` · ${p.note}` : ''}</div>
               </div>
+              <Link className="btn small" to={`/receipt/${p.id}`}>Receipt</Link>
               <button className="btn small danger" onClick={() => act({ type: 'deletePayment', id: p.id }, `${inr(p.amount)} payment removed`)} aria-label={`Remove payment of ${inr(p.amount)}`}>Remove</button>
             </div>
           ))}

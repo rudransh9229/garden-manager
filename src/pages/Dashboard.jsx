@@ -1,3 +1,4 @@
+import ReminderButton from '../components/ReminderButton.jsx';
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store.jsx';
@@ -108,6 +109,7 @@ export default function Dashboard() {
                         <div className="small muted">{fmtDate(r.booking.date)} · {r.eventType}</div>
                       </div>
                       <b className="num bad">{inr(r.pending)}</b>
+                      <ReminderButton row={r} small />
                     </div>
                   ))}
                   {dues.length > 6 && <p className="small muted" style={{ paddingTop: 10 }}>And {dues.length - 6} more.</p>}

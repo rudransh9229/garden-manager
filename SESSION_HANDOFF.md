@@ -137,3 +137,9 @@ Update this at the end of every working session. Newest session on top.
 - Deleting a booking now moves it to the Bin (new page /bin, owner only; 30 days, Put back / Delete for good / Empty). New owner-only collection `bin` (sync.js COLLECTIONS, split.js OWNER_ONLY, firestore.rules). Old data without `bin` is normalised on load. Backup and file clean-up count bin invoices.
 - OWNER MUST re-paste firestore.rules in the Firebase console, or deleting will fail to save.
 - Next in plan (user said "do 2, 3, 4 one by one"): WhatsApp reminders, printable receipt, receipt photos on expenses, category budgets, backup reminder; then looks (logo, dashboard top), then weak spots (real-Firebase checks).
+
+## Session: WhatsApp reminders (2026-10-19)
+- lib/reminder.js (number clean-up, message template, wa.me link), components/ReminderButton.jsx (Dashboard dues "Remind", EventDetail "WhatsApp reminder", owner only, only when money is due), Settings "Payment reminder message" (settings.reminderText, placeholders {name} {amount} {date} {event} {garden}). No rules change. Opens WhatsApp with the message ready; the person still presses send.
+
+## Session: printable receipt (2026-10-19)
+- /receipt/:paymentId (pages/Receipt.jsx, owner only): one A5 page with garden name, address and phone (new settings.gardenAddress/gardenPhone in Settings > Garden), receipt number R-YYYYMMDD-XXXX, amount in words (lib/words.js, Indian lakh/crore), balance after that payment. "Receipt" button on every payment in EventDetail. Print or save as PDF uses the browser print window (no library). No rules change.
