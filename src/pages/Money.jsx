@@ -90,9 +90,9 @@ export default function Money() {
                   <SortTh label="Date" k="date" sort={sort} setSort={setSort} />
                   <SortTh label="Client" k="client" sort={sort} setSort={setSort} />
                   <SortTh label="Revenue" k="revenue" sort={sort} setSort={setSort} right />
-                  <SortTh label="Received" k="received" sort={sort} setSort={setSort} right />
-                  <SortTh label="Still due" k="pending" sort={sort} setSort={setSort} right />
-                  <SortTh label="Expenses" k="expenses" sort={sort} setSort={setSort} right />
+                  <SortTh label="Received" k="received" sort={sort} setSort={setSort} right className="hide-sm" />
+                  <SortTh label="Still due" k="pending" sort={sort} setSort={setSort} right className="hide-sm" />
+                  <SortTh label="Expenses" k="expenses" sort={sort} setSort={setSort} right className="hide-sm" />
                   <SortTh label="Profit" k="profit" sort={sort} setSort={setSort} right />
                 </tr>
               </thead>
@@ -105,9 +105,9 @@ export default function Money() {
                       <div className="small muted">{l.kind === 'cancel' ? 'Kept advance from a cancelled booking' : l.type}</div>
                     </td>
                     <td className="right num">{inr(l.revenue)}</td>
-                    <td className="right num">{inr(l.received)}</td>
-                    <td className="right num">{l.pending ? inr(l.pending) : <span className="faint">—</span>}</td>
-                    <td className="right num">{l.expenses ? inr(l.expenses) : <span className="faint">—</span>}</td>
+                    <td className="right num hide-sm">{inr(l.received)}</td>
+                    <td className="right num hide-sm">{l.pending ? inr(l.pending) : <span className="faint">—</span>}</td>
+                    <td className="right num hide-sm">{l.expenses ? inr(l.expenses) : <span className="faint">—</span>}</td>
                     <td className={`right num ${l.profit < 0 ? 'bad' : ''}`} style={{ fontWeight: 500 }}>{inr(l.profit)}</td>
                   </tr>
                 ))}
@@ -117,18 +117,18 @@ export default function Money() {
                   <tr>
                     <td colSpan={2} style={{ padding: '10px' }}><Link to="/costs">Garden expenses</Link><div className="small muted">Painting, repairs, yearly bills: not tied to one event</div></td>
                     <td className="right num"><span className="faint">—</span></td>
-                    <td className="right num"><span className="faint">—</span></td>
-                    <td className="right num"><span className="faint">—</span></td>
-                    <td className="right num">{inr(t.overhead)}</td>
+                    <td className="right num hide-sm"><span className="faint">—</span></td>
+                    <td className="right num hide-sm"><span className="faint">—</span></td>
+                    <td className="right num hide-sm">{inr(t.overhead)}</td>
                     <td className="right num bad" style={{ fontWeight: 500 }}>{inr(-t.overhead)}</td>
                   </tr>
                 )}
                 <tr>
                   <td colSpan={2} style={{ fontWeight: 700, padding: '12px 10px' }}>Total</td>
                   <td className="right num" style={{ fontWeight: 700 }}>{inr(t.total)}</td>
-                  <td className="right num" style={{ fontWeight: 700 }}>{inr(t.collected + t.cancel)}</td>
-                  <td className="right num" style={{ fontWeight: 700 }}>{inr(t.pending)}</td>
-                  <td className="right num" style={{ fontWeight: 700 }}>{inr(t.expenses)}</td>
+                  <td className="right num hide-sm" style={{ fontWeight: 700 }}>{inr(t.collected + t.cancel)}</td>
+                  <td className="right num hide-sm" style={{ fontWeight: 700 }}>{inr(t.pending)}</td>
+                  <td className="right num hide-sm" style={{ fontWeight: 700 }}>{inr(t.expenses)}</td>
                   <td className={`right num ${t.profit < 0 ? 'bad' : ''}`} style={{ fontWeight: 700 }}>{inr(t.profit)}</td>
                 </tr>
               </tfoot>

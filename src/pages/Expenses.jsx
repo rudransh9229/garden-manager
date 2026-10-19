@@ -142,7 +142,7 @@ export default function Expenses() {
               <Empty title="Nothing matches">Try another year, category or search.</Empty>
             ) : (
               <div className="table-wrap">
-                <table>
+                <table className="cards-sm">
                   <thead>
                     <tr>
                       <SortTh label="Date" k="date" sort={sort} setSort={setSort} />
@@ -156,16 +156,16 @@ export default function Expenses() {
                   <tbody>
                     {sorted.slice(0, 300).map((x) => (
                       <tr key={x.id}>
-                        <td className="num" style={{ whiteSpace: 'nowrap' }}>{fmtDate(x.date)}</td>
-                        <td><i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: catColor(x.category, usedCats), marginRight: 8 }} />{x.category}</td>
-                        <td>
-                          {x.vendor || <span className="faint">—</span>}
+                        <td className="c-date num" style={{ whiteSpace: 'nowrap' }}>{fmtDate(x.date)}</td>
+                        <td className="c-cat"><i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: catColor(x.category, usedCats), marginRight: 8 }} />{x.category}</td>
+                        <td className="c-who">
+                          {x.vendor || <span className="faint hide-sm">—</span>}
                           {(x.note || x.mode) && <div className="small muted">{[x.note, x.mode].filter(Boolean).join(' · ')}</div>}
                           {!x.paid && <span className="pill Tentative" style={{ marginTop: 4 }}>Not paid yet</span>}
                         </td>
-                        <td>{x.row ? <Link to={`/events/${x.row.id}`}>{x.forWhat}</Link> : x.e.bookingId ? <span className="muted">Removed event</span> : 'Garden'}</td>
-                        <td className="right num">{inr(x.amount)}</td>
-                        <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
+                        <td className="c-for">{x.row ? <Link to={`/events/${x.row.id}`}>{x.forWhat}</Link> : x.e.bookingId ? <span className="muted">Removed event</span> : 'Garden'}</td>
+                        <td className="c-amt right num" style={{ fontWeight: 600 }}>{inr(x.amount)}</td>
+                        <td className="c-act" style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>
                           {!x.paid && <button className="btn small" onClick={() => act({ type: 'updateExpense', id: x.id, patch: { paid: true } }, `${inr(x.amount)} marked as paid`)}>Mark paid</button>}{' '}
                           <button className="btn small" onClick={() => setEditing(x.e)}>Edit</button>{' '}
                           <button className="btn small danger" onClick={() => setRemoving(x)} aria-label={`Remove expense of ${inr(x.amount)}`}>Remove</button>

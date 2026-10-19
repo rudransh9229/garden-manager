@@ -98,7 +98,7 @@ export default function BookingForm({ row = null, defaultDate, onClose }) {
     >
       <div className="form-grid">
         <Field label="Client name" error={err('name')} full>
-          <input type="text" list="known-clients" value={f.name} onChange={set('name')} onBlur={onBlurName} autoComplete="off" />
+          <input type="text" list="known-clients" value={f.name} onChange={set('name')} onBlur={onBlurName} autoComplete="off" placeholder="Type the client's name" />
         </Field>
         <datalist id="known-clients">{knownNames.map((n) => <option key={n} value={n} />)}</datalist>
         <Field label="Mobile number" error={err('phone')}>

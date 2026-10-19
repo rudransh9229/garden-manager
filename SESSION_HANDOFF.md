@@ -127,3 +127,7 @@ Update this at the end of every working session. Newest session on top.
 - No firestore.rules change needed (expenses already owner-only).
 - Not verified on real Firebase: saving the new fields (vendor, paid, mode) and settings.expenseCategories; owner should add one expense and reload.
 - Ideas not built: expense receipt photos, budgets per category, recurring templates that auto-create, PDF export of the balance sheet.
+
+## Session: phone polish (2026-10-19)
+- Checked every page at 390 and 360 px as owner and manager. Fixed: small tap targets (buttons, links, close X, chart buttons, file inputs), modal height uses 100dvh with a sticky button bar, Expenses table becomes cards on phones, Money page shows Date/Client/Revenue/Profit on phones, client-name placeholder, two-column layouts stack under 1000px.
+- Tests after the changes: npm run check, flows 22/22, crawl clean, phone audit no issues. Not tried on a real phone.

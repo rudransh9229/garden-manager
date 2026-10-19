@@ -128,10 +128,10 @@ export function Empty({ title, children, action }) {
   );
 }
 
-export function SortTh({ label, k, sort, setSort, right }) {
+export function SortTh({ label, k, sort, setSort, right, className = '' }) {
   const on = sort.key === k;
   return (
-    <th className={right ? 'right' : ''} aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+    <th className={`${right ? 'right' : ''} ${className}`.trim()} aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
       <button onClick={() => setSort({ key: k, dir: on && sort.dir === 'desc' ? 'asc' : 'desc' })}>
         {label}
         <span aria-hidden="true">{on ? (sort.dir === 'asc' ? '▲' : '▼') : ''}</span>
