@@ -10,7 +10,7 @@ import { STATUSES } from '../lib/constants.js';
 const PAGE = 40;
 
 export default function Events() {
-  const { data, state, isOwner } = useStore();
+  const { data, state, isOwner, today } = useStore();
   const ui = useUi();
   const nav = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -19,6 +19,7 @@ export default function Events() {
   const [type, setType] = useState('all');
   const [status, setStatus] = useState('all');
   const [limit, setLimit] = useState(PAGE);
+  const [showPast, setShowPast] = useState(false);
 
   const setQ = (v) => { setLimit(PAGE); setParams(v ? { q: v } : {}, { replace: true }); };
   const extra = useMemo(() => {
@@ -34,6 +35,12 @@ export default function Events() {
     () => found.filter((r) => (year === 'all' || r.year === Number(year)) && (type === 'all' || r.eventType === type) && (status === 'all' || r.booking.status === status)),
     [found, year, type, status],
   );
+  // Upcoming first (soonest on top); earlier events only on request, or when searching/filtering by year.
+  const searching = Boolean(q) || year !== 'all';
+  const upcoming = useMemo(() => rows.filter((r) => r.booking.date >= today).sort((a, b) => (a.booking.date < b.booking.date ? -1 : 1)), [rows, today]);
+  const past = useMemo(() => rows.filter((r) => r.booking.date < today).sort((a, b) => (a.booking.date < b.booking.date ? 1 : -1)), [rows, today]);
+  const pastOpen = showPast || searching;
+  const shown = pastOpen ? [...upcoming, ...past] : upcoming;
   const understood = describeQuery(parseQuery(q));
   const filtering = year !== 'all' || type !== 'all' || status !== 'all';
 
@@ -63,12 +70,12 @@ export default function Events() {
         </select>
         {(filtering || q) && <button className="btn link" onClick={() => { setYear('all'); setType('all'); setStatus('all'); setQ(''); }}>Clear</button>}
         <span className="muted small" style={{ marginLeft: 'auto' }} aria-live="polite">
-          {plural(rows.length, 'event')}{understood ? ` · ${understood}` : ''}
+          {plural(shown.length, 'event')}{understood ? ` · ${understood}` : ''}
         </span>
       </div>
 
       <div className="card" style={{ padding: 8 }}>
-        {rows.length === 0 ? (
+        {shown.length === 0 && !(past.length && !pastOpen) ? (
           <Empty
             title={data.rows.length === 0 ? 'No events yet' : 'No events found'}
             action={data.rows.length === 0 && isOwner ? <button className="btn primary" onClick={() => ui.newBooking()}>Add the first booking</button> : null}
@@ -93,32 +100,54 @@ export default function Events() {
                 </tr>
               </thead>
               <tbody>
-                {rows.slice(0, limit).map((r) => (
-                  <tr key={r.id} className="click" tabIndex={0} onClick={() => nav(`/events/${r.id}`)} onKeyDown={(e) => e.key === 'Enter' && nav(`/events/${r.id}`)}>
-                    <td className="num e-date" style={{ whiteSpace: 'nowrap' }}>{fmtDate(r.booking.date)}</td>
-                    <td className="e-who">
-                      <div style={{ fontWeight: 500 }}>{r.client.name}</div>
-                      <div className="small muted">{[fmtPhone(r.client.phone), r.client.address].filter(Boolean).join(' · ')}</div>
-                    </td>
-                    <td className="hide-sm e-type"><TypeTag name={r.eventType} /></td>
-                    <td className="e-stat"><StatusPill status={r.booking.status} /></td>
-                    {isOwner && (
-                      <td className="right num e-amt">
-                        {r.booking.status === 'Cancelled' ? <span className="muted">{r.cancellation ? `Kept ${inr(r.cancellation.advanceKept)}` : '—'}</span> : inr(r.booking.total)}
+                {shown.slice(0, limit).flatMap((r, i, arr) => {
+                  const d = r.booking.date;
+                  const prev = i > 0 ? arr[i - 1].booking.date : null;
+                  const isPast = d < today;
+                  const newGroup = prev === null || prev.slice(0, 7) !== d.slice(0, 7) || (prev < today) !== isPast;
+                  const newYear = prev === null ? (isPast || d.slice(0, 4) !== today.slice(0, 4)) : prev.slice(0, 4) !== d.slice(0, 4) || (prev < today) !== isPast;
+                  const out = [];
+                  if (isPast && (prev === null || prev >= today)) out.push(<tr className="sep-row sep-past" key="past"><td colSpan={isOwner ? 6 : 4}>Previous bookings</td></tr>);
+                  else if (newGroup && prev !== null) out.push(<tr className="sep-row" key={`g${d}`}><td colSpan={isOwner ? 6 : 4}>{newYear ? <span className="sep-year">{d.slice(0, 4)}</span> : null}</td></tr>);
+                  else if (newYear) out.push(<tr className="sep-row" key={`y${d}`}><td colSpan={isOwner ? 6 : 4}><span className="sep-year">{d.slice(0, 4)}</span></td></tr>);
+                  out.push(
+                    <tr key={r.id} className="click" tabIndex={0} onClick={() => nav(`/events/${r.id}`)} onKeyDown={(e) => e.key === 'Enter' && nav(`/events/${r.id}`)}>
+                      <td className="num e-date" style={{ whiteSpace: 'nowrap' }}>{fmtDate(d)}</td>
+                      <td className="e-who">
+                        <div style={{ fontWeight: 500 }}>{r.client.name}</div>
+                        <div className="small muted">{[fmtPhone(r.client.phone), r.client.address].filter(Boolean).join(' · ')}</div>
                       </td>
-                    )}
-                    {isOwner && (
-                      <td className="right num hide-sm e-bal">{r.counted ? (r.pending > 0 ? inr(r.pending) : <span className="faint">Paid</span>) : <span className="faint">—</span>}</td>
-                    )}
-                  </tr>
-                ))}
+                      <td className="hide-sm e-type"><TypeTag name={r.eventType} /></td>
+                      <td className="e-stat"><StatusPill status={r.booking.status} /></td>
+                      {isOwner && (
+                        <td className="right num e-amt">
+                          {r.booking.status === 'Cancelled' ? <span className="muted">{r.cancellation ? `Kept ${inr(r.cancellation.advanceKept)}` : '—'}</span> : inr(r.booking.total)}
+                        </td>
+                      )}
+                      {isOwner && (
+                        <td className="right num hide-sm e-bal">{r.counted ? (r.pending > 0 ? inr(r.pending) : <span className="faint">Paid</span>) : <span className="faint">—</span>}</td>
+                      )}
+                    </tr>,
+                  );
+                  return out;
+                })}
               </tbody>
             </table>
           </div>
         )}
-        {rows.length > limit && (
+        {shown.length > limit && (
           <div style={{ textAlign: 'center', padding: 12 }}>
-            <button className="btn" onClick={() => setLimit((l) => l + PAGE)}>Show {Math.min(PAGE, rows.length - limit)} more</button>
+            <button className="btn" onClick={() => setLimit((l) => l + PAGE)}>Show {Math.min(PAGE, shown.length - limit)} more</button>
+          </div>
+        )}
+        {!pastOpen && past.length > 0 && (
+          <div style={{ textAlign: 'center', padding: 12 }}>
+            <button className="btn" onClick={() => setShowPast(true)}>Previous bookings ({past.length})</button>
+          </div>
+        )}
+        {showPast && !searching && (
+          <div style={{ textAlign: 'center', padding: 12 }}>
+            <button className="btn link" onClick={() => setShowPast(false)}>Hide previous bookings</button>
           </div>
         )}
       </div>

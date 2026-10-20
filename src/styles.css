@@ -583,3 +583,13 @@ body {
 .booked-row.past .booked-date b, .booked-row.past .t { color: var(--ink-2); }
 .booked-row.past .t a { color: var(--ink-2); }
 @media (max-width: 560px) { .booked { padding: 4px 14px; } .booked-date { width: 62px; } }
+
+/* Gaps between months in the events list */
+tr.sep-row td { padding: 14px 8px 2px; border: 0; background: transparent; }
+tr.sep-row:hover td { background: transparent; }
+.sep-year { font: 600 12px var(--font-body); letter-spacing: 0.08em; color: var(--ink-3); }
+tr.sep-past td { font: 600 12px var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding-top: 22px; border-top: 1px solid var(--line); }
+@media (max-width: 560px) {
+  table.events-sm tbody tr.sep-row { display: block; padding: 10px 6px 0; border: 0; }
+  table.events-sm tbody tr.sep-row td { padding: 0; }
+}

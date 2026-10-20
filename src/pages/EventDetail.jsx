@@ -4,11 +4,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 import { useUi } from '../uiContext.jsx';
 import { Confirm, Field, MoneyInput, StatusPill } from '../components/ui.jsx';
-import AttendancePanel from '../components/AttendancePanel.jsx';
 import DocFileActions from '../components/DocFileActions.jsx';
-import { addDays, isValidISO } from '../lib/dates.js';
+import { isValidISO } from '../lib/dates.js';
 import { fmtDate, fmtPhone, inr, plural, toPaise, toRupeesInput } from '../lib/format.js';
-import { expenseCategories, MANAGER_EDIT_DAYS, PAYMENT_MODES } from '../lib/constants.js';
+import { expenseCategories, PAYMENT_MODES } from '../lib/constants.js';
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -35,7 +34,6 @@ export default function EventDetail() {
   const expenses = state.expenses.filter((e) => e.bookingId === id).sort((a, c) => (a.date < c.date ? -1 : 1));
   const docs = state.documents.filter((d) => d.bookingId === id).sort((a, c) => (a.uploadedAt < c.uploadedAt ? 1 : -1));
   const lastCancel = state.cancellations.filter((c) => c.bookingId === id).slice(-1)[0];
-  const canMark = isOwner || b.date >= addDays(today, -MANAGER_EDIT_DAYS);
   const paidPct = b.total > 0 ? Math.min(100, Math.round((row.received / b.total) * 100)) : 0;
 
   const remove = () => {
@@ -142,30 +140,6 @@ export default function EventDetail() {
         )}
 
         {isOwner && (
-          <div className="grid cols-2" style={{ alignItems: 'start' }}>
-            <PaymentsCard id={id} payments={payments} total={b.total} />
-            <ExpensesCard id={id} expenses={expenses} labour={row.labour} />
-          </div>
-        )}
-
-        <section className="card">
-          <div className="card-head">
-            <h2>Staff and attendance</h2>
-            {!isOwner && <span className="small muted">Mark who came to work this event</span>}
-          </div>
-          {cancelled ? (
-            <p className="muted">This booking is cancelled, so there is no staff to mark.</p>
-          ) : (
-            <AttendancePanel
-              row={row}
-              canEdit={canMark}
-              showWages={isOwner}
-              lockedMessage={`Attendance can be changed for events in the last ${MANAGER_EDIT_DAYS} days. Ask an owner to change older ones.`}
-            />
-          )}
-        </section>
-
-        {isOwner && (
           <section className="card">
             <div className="card-head">
               <h2>Invoices and documents</h2>
@@ -188,6 +162,14 @@ export default function EventDetail() {
             )}
           </section>
         )}
+
+        {isOwner && (
+          <div className="grid cols-2" style={{ alignItems: 'start' }}>
+            <PaymentsCard id={id} payments={payments} total={b.total} />
+            <ExpensesCard id={id} expenses={expenses} labour={row.labour} />
+          </div>
+        )}
+
       </div>
 
       {askDelete && (
