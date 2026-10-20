@@ -4,7 +4,8 @@ import { useStore } from '../store.jsx';
 import { useUi } from '../uiContext.jsx';
 import { Empty, Icon, PageHead, StatusPill, TypeTag } from '../components/ui.jsx';
 import { describeQuery, parseQuery, searchRows } from '../lib/search.js';
-import { fmtDate, fmtPhone, inr, plural } from '../lib/format.js';
+import { fmtDate, fmtPhone, inr, MONTHS, plural, WEEKDAYS } from '../lib/format.js';
+import { weekday } from '../lib/dates.js';
 import { STATUSES } from '../lib/constants.js';
 
 const PAGE = 40;
@@ -52,10 +53,10 @@ export default function Events() {
 
       <div className="search-big">
         <Icon name="search" />
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Client name, phone or date" aria-label="Search events" autoFocus />
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Client name, phone or date" aria-label="Search events" autoFocus={typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(hover: hover)').matches} />
       </div>
 
-      <div className="row" style={{ margin: '18px 0 12px' }}>
+      <div className="row ev-filters" style={{ margin: '18px 0 12px' }}>
         <select value={year} onChange={(e) => { setYear(e.target.value); setLimit(PAGE); }} aria-label="Year" style={{ width: 'auto' }}>
           <option value="all">All years</option>
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
@@ -112,7 +113,10 @@ export default function Events() {
                   else if (newYear) out.push(<tr className="sep-row" key={`y${d}`}><td colSpan={isOwner ? 6 : 4}><span className="sep-year">{d.slice(0, 4)}</span></td></tr>);
                   out.push(
                     <tr key={r.id} className="click" tabIndex={0} onClick={() => nav(`/events/${r.id}`)} onKeyDown={(e) => e.key === 'Enter' && nav(`/events/${r.id}`)}>
-                      <td className="num e-date" style={{ whiteSpace: 'nowrap' }}>{fmtDate(d)}</td>
+                      <td className="num e-date" style={{ whiteSpace: 'nowrap' }}>
+                        <span className="d-full">{fmtDate(d)}</span>
+                        <span className="d-card" aria-hidden="true"><b>{Number(d.slice(8))}</b><i>{MONTHS[Number(d.slice(5, 7)) - 1]} {d.slice(2, 4) === today.slice(2, 4) ? '' : d.slice(0, 4)}</i><em>{WEEKDAYS[weekday(d)]}</em></span>
+                      </td>
                       <td className="e-who">
                         <div style={{ fontWeight: 500 }}>{r.client.name}</div>
                         <div className="small muted">{[fmtPhone(r.client.phone), r.client.address].filter(Boolean).join(' · ')}</div>

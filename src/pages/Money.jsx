@@ -52,7 +52,7 @@ export default function Money() {
       </PageHead>
 
       <div className="card" style={{ padding: '12px 16px', marginBottom: 16 }}>
-        <div className="row">
+        <div className="row fbar">
           <label className="small muted" htmlFor="m-year">Year</label>
           <select id="m-year" value={year} onChange={(e) => setYear(e.target.value === 'all' ? 'all' : Number(e.target.value))} style={{ width: 'auto' }}>
             <option value="all">All years</option>

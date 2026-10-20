@@ -60,7 +60,7 @@ export default function Calendar() {
           {years.map((y) => <option key={y}>{y}</option>)}
         </select>
         <button className="btn" onClick={() => { setCur({ y: t.y, m: t.m }); setSel(today); }}>Today</button>
-        <span className="muted small" style={{ marginLeft: 'auto' }}>{plural(monthCount, 'event')} this month</span>
+        <span className="muted small cal-count" style={{ marginLeft: 'auto' }}>{plural(monthCount, 'event')} this month</span>
         <div className="seg" role="group" aria-label="How to show the month">
           <button aria-pressed={view === 'list'} onClick={() => setView('list')}>List</button>
           <button aria-pressed={view === 'grid'} onClick={() => setView('grid')}>Calendar</button>

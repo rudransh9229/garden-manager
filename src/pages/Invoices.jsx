@@ -76,7 +76,7 @@ export default function Invoices() {
                 <span className="muted small">{plural(list.length, 'invoice')}{y < thisYear ? ' · previous year' : ' · this year'}</span>
               </div>
               <div className="table-wrap">
-                <table>
+                <table className="inv-sm">
                   <thead>
                     <tr><th>Invoice</th><th>Client</th><th className="hide-sm">Event date</th><th className="right">File</th></tr>
                   </thead>

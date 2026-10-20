@@ -593,3 +593,60 @@ tr.sep-past td { font: 600 12px var(--font-body); letter-spacing: 0.08em; text-t
   table.events-sm tbody tr.sep-row { display: block; padding: 10px 6px 0; border: 0; }
   table.events-sm tbody tr.sep-row td { padding: 0; }
 }
+
+/* Events on a phone: the date leads, the name follows */
+.d-card { display: none; }
+@media (max-width: 560px) {
+  .ev-filters { flex-wrap: nowrap; overflow-x: auto; margin: 12px -2px 8px !important; padding: 2px; scrollbar-width: none; }
+  .ev-filters::-webkit-scrollbar { display: none; }
+  .ev-filters select { flex: none; min-height: 38px; font-size: 14px; }
+  .ev-filters > span { display: none; }
+  .search-big { margin-bottom: 0; }
+  table.events-sm tbody tr:not(.sep-row) { grid-template-columns: 54px minmax(0, 1fr) auto; grid-template-areas: "date who stat" "date type amt" "date . bal"; gap: 2px 12px; align-items: start; padding: 12px 4px; }
+  table.events-sm .e-date { grid-area: date; font-size: inherit; color: inherit; }
+  table.events-sm .d-full { display: none; }
+  table.events-sm .d-card { display: block; text-align: center; line-height: 1.05; padding: 6px 0; border-radius: 12px; background: var(--green-soft); }
+  table.events-sm .d-card b { display: block; font: 700 22px var(--font-head); color: var(--ink); }
+  table.events-sm .d-card i { display: block; font-style: normal; font-size: 12px; color: var(--ink-2); font-weight: 600; }
+  table.events-sm .d-card em { display: block; font-style: normal; font-size: 12px; color: var(--ink-3); margin-top: 1px; }
+  table.events-sm .e-who > div:first-child { font-size: 15px; }
+  table.events-sm .e-stat { align-self: start; }
+  table.events-sm .e-amt { font-size: 14px; }
+  table.events-sm .e-bal { font-size: 12.5px; }
+}
+@media (max-width: 560px) {
+  table.events-sm .e-who .small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .page-head { margin-bottom: 10px; }
+  .page-head .btn.primary { padding: 0 14px; min-height: 40px; font-size: 14px; }
+}
+@media (max-width: 560px) {
+  .page { padding-top: 12px; }
+  .fbar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px 10px !important; align-items: center; }
+  .fbar > label.small.muted { display: none; }
+  .fbar select { width: 100% !important; min-height: 40px; }
+  .fbar > label.row { grid-column: 1 / -1; font-size: 13.5px; }
+  .card .fbar { margin: 0; }
+}
+/* the app shell already pads the page; a page inside it must not pad twice */
+.page .page { padding: 0; max-width: none; }
+@media (max-width: 560px) {
+  table.inv-sm thead { display: none; }
+  table.inv-sm tbody tr { display: block; padding: 12px 2px; border-bottom: 1px solid var(--line); }
+  table.inv-sm tbody td { display: block; padding: 0; border: 0; }
+  table.inv-sm tbody td:first-child { font-size: 15px; }
+  table.inv-sm tbody td:nth-child(2) { margin: 2px 0 8px; }
+  table.inv-sm tbody td:last-child > * { flex-wrap: wrap; justify-content: flex-start; text-align: left; }
+  table.inv-sm .btn { min-height: 38px; }
+}
+@media (max-width: 560px) {
+  .cal-count { display: none; }
+  .cal-head .seg { margin-left: auto; }
+  .page input:not([type=checkbox]):not([type=radio]):not([type=file]), .page textarea, .page select.full, .field select { width: 100%; max-width: 100%; }
+  .card .btn[disabled] { display: inline-flex; }
+}
+@media (max-width: 560px) {
+  .card .row:has(> .field) { flex-direction: column; align-items: stretch !important; gap: 0; }
+  .card .row:has(> .field) > .field { width: 100%; }
+  .card .row:has(> .field) > .field input { min-width: 0 !important; }
+  .card .row:has(> .field) > .btn { margin: 0 0 12px !important; align-self: flex-start; }
+}

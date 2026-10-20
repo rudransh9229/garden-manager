@@ -8,7 +8,7 @@ export function AnalyticsFilters({ f, setF, years, settings, types, yearNote }) 
   const set = (k) => (e) => setF({ ...f, [k]: k === 'year' && e.target.value !== 'all' ? Number(e.target.value) : e.target.value });
   return (
     <div className="card" style={{ padding: '12px 16px', marginBottom: 16 }}>
-      <div className="row">
+      <div className="row fbar">
         <label className="small muted" htmlFor="f-year">Year</label>
         <select id="f-year" value={f.year} onChange={set('year')} style={{ width: 'auto' }}>
           <option value="all">All years</option>
