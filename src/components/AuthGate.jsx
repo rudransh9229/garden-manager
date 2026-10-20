@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Splash from './Splash.jsx';
+import Logo from './Logo.jsx';
 
 /**
  * Shows the sign-in screen until a family member is signed in AND has been given a role.
@@ -56,7 +57,7 @@ export default function AuthGate({ firebase, children }) {
 function Shell({ children }) {
   return (
     <div className="page" style={{ maxWidth: 440, margin: '8vh auto 0' }}>
-      <div className="card">{children}</div>
+      <div className="card shell-card"><div className="garland" aria-hidden="true" />{children}</div>
     </div>
   );
 }
@@ -89,8 +90,7 @@ function SignIn({ firebase }) {
 
   return (
     <Shell>
-      <h2>Garden Manager</h2>
-      <p className="muted" style={{ margin: '4px 0 16px' }}>Private to the family and the garden manager. Sign in to continue.</p>
+      <div className="signin-head"><Logo size={56} /><div><h2>Garden Manager</h2><p className="muted">Private to the family and the garden manager. Sign in to continue.</p></div></div>
       <form onSubmit={submit}>
         <div className="field">
           <label htmlFor="si-email">Email</label>

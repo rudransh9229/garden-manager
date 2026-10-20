@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Confirm, Field, Modal, PageHead } from '../components/ui.jsx';
 import { buildBackup, readBackup, restoreFiles } from '../lib/backup.js';
-import { MONTHS } from '../lib/format.js';
-import { plural } from '../lib/format.js';
+import { MONTHS, inr, plural, toPaise, toRupeesInput } from '../lib/format.js';
 import { expenseCategories } from '../lib/constants.js';
 import { DEFAULT_REMINDER, reminderText } from '../lib/reminder.js';
 import { addDays, todayISO } from '../lib/dates.js';
@@ -122,7 +121,7 @@ function ExpenseCategories() {
       </div>
       <div className="list">
         {cats.map((c) => (
-          <div className="list-row" key={c}>
+          <div className="list-row" key={c} style={{ flexWrap: 'wrap', rowGap: 8 }}>
             {renaming?.from === c ? (
               <>
                 <input type="text" value={renaming.to} onChange={(e) => setRenaming({ ...renaming, to: e.target.value })} aria-label={`New name for ${c}`} style={{ maxWidth: 260 }} autoFocus
@@ -133,7 +132,8 @@ function ExpenseCategories() {
               </>
             ) : (
               <>
-                <div className="grow"><span className="t">{c}</span> <span className="small muted">· {plural(count(c), 'expense')}</span></div>
+                <div className="grow" style={{ flexBasis: 200 }}><span className="t">{c}</span> <span className="small muted">· {plural(count(c), 'expense')}</span></div>
+                <BudgetBox category={c} />
                 <button className="btn small" onClick={() => setRenaming({ from: c, to: c })}>Rename</button>
                 <button className="btn small danger" disabled={cats.length <= 1} onClick={() => setRemoving(c)}>Remove</button>
               </>
@@ -335,5 +335,25 @@ function Reminder() {
         <button className="btn" disabled={text === DEFAULT_REMINDER && !state.settings.reminderText} onClick={() => { setText(DEFAULT_REMINDER); dispatch({ type: 'setSettings', fields: { reminderText: '' } }); notify('Back to the standard message'); }}>Use the standard message</button>
       </div>
     </section>
+  );
+}
+
+/** A monthly limit for one expense category, saved when the box is left. */
+function BudgetBox({ category }) {
+  const { state, dispatch, notify } = useStore();
+  const current = (state.settings.budgets || {})[category] || 0;
+  const [v, setV] = useState(current ? toRupeesInput(current) : '');
+  React.useEffect(() => setV(current ? toRupeesInput(current) : ''), [current]);
+  const save = () => {
+    const amt = toPaise(v) || 0;
+    if (amt === current) return;
+    dispatch({ type: 'setBudget', category, amount: amt });
+    notify(amt ? `Budget for ${category}: ${inr(amt)} a month` : `Budget for ${category} removed`);
+  };
+  return (
+    <label className="small muted" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      Budget
+      <input type="text" inputMode="numeric" value={v} onChange={(e) => setV(e.target.value)} onBlur={save} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} placeholder="₹ a month" aria-label={`Monthly budget for ${category}`} style={{ width: 96 }} />
+    </label>
   );
 }

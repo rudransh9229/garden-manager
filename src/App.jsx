@@ -17,6 +17,7 @@ import Settings from './pages/Settings.jsx';
 import People from './pages/People.jsx';
 import Expenses from './pages/Expenses.jsx';
 import BalanceSheet from './pages/BalanceSheet.jsx';
+import Logo from './components/Logo.jsx';
 import Bin from './pages/Bin.jsx';
 import Receipt from './pages/Receipt.jsx';
 
@@ -33,6 +34,8 @@ const MANAGER_NAV = [
 const OWNER_TABS = [['/', 'Home', 'home'], ['/calendar', 'Calendar', 'calendar'], ['/events', 'Events', 'search'], ['/invoices', 'Invoices', 'file']];
 const MANAGER_TABS = [['/attendance', 'Attendance', 'check'], ['/calendar', 'Calendar', 'calendar'], ['/events', 'Events', 'search'], ['/staff', 'Staff', 'users']];
 
+const GROUP_KEY = { 'Run the garden': 'run', Money: 'money', Team: 'team', 'Set up': 'setup' };
+
 function NavList({ groups, onNavigate }) {
   return (
     <nav className="nav" aria-label="Main">
@@ -40,7 +43,7 @@ function NavList({ groups, onNavigate }) {
         <React.Fragment key={g.group || 'main'}>
           {g.group && <div className="nav-group">{g.group}</div>}
           {g.items.map(([to, label, icon]) => (
-            <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate}>
+            <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate} data-group={GROUP_KEY[g.group] || 'run'}>
               <Icon name={icon} />
               {label}
             </NavLink>
@@ -69,6 +72,7 @@ function SyncStatus() {
   }
   return (
     <div className="sync" role="status" aria-live="polite">
+      <i className={`sync-dot${sync.status === 'saving' ? ' busy' : ''}`} aria-hidden="true" />
       {sync.status === 'saving' ? 'Saving…' : backendName === 'browser' ? 'Saved in this browser' : 'All changes saved'}
     </div>
   );
@@ -108,8 +112,8 @@ export default function App() {
 
   const brand = (
     <div className="brand">
-      Garden Manager
-      <small>{state.settings.gardenName}</small>
+      <Logo size={38} />
+      <div className="brand-text"><span>{state.settings.gardenName}</span><small>Garden Manager</small></div>
     </div>
   );
   const foot = (

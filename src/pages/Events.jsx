@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 import { useUi } from '../uiContext.jsx';
-import { Empty, Icon, PageHead, StatusPill } from '../components/ui.jsx';
+import { Empty, Icon, PageHead, StatusPill, TypeTag } from '../components/ui.jsx';
 import { describeQuery, parseQuery, searchRows } from '../lib/search.js';
 import { fmtDate, fmtPhone, inr, plural } from '../lib/format.js';
 import { STATUSES } from '../lib/constants.js';
@@ -86,7 +86,7 @@ export default function Events() {
           </Empty>
         ) : (
           <div className="table-wrap">
-            <table>
+            <table className="events-sm">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -100,20 +100,20 @@ export default function Events() {
               <tbody>
                 {rows.slice(0, limit).map((r) => (
                   <tr key={r.id} className="click" tabIndex={0} onClick={() => nav(`/events/${r.id}`)} onKeyDown={(e) => e.key === 'Enter' && nav(`/events/${r.id}`)}>
-                    <td className="num" style={{ whiteSpace: 'nowrap' }}>{fmtDate(r.booking.date)}</td>
-                    <td>
+                    <td className="num e-date" style={{ whiteSpace: 'nowrap' }}>{fmtDate(r.booking.date)}</td>
+                    <td className="e-who">
                       <div style={{ fontWeight: 500 }}>{r.client.name}</div>
                       <div className="small muted">{[fmtPhone(r.client.phone), r.client.address].filter(Boolean).join(' · ')}</div>
                     </td>
-                    <td className="hide-sm">{r.eventType}</td>
-                    <td><StatusPill status={r.booking.status} /></td>
+                    <td className="hide-sm e-type"><TypeTag name={r.eventType} /></td>
+                    <td className="e-stat"><StatusPill status={r.booking.status} /></td>
                     {isOwner && (
-                      <td className="right num">
+                      <td className="right num e-amt">
                         {r.booking.status === 'Cancelled' ? <span className="muted">{r.cancellation ? `Kept ${inr(r.cancellation.advanceKept)}` : '—'}</span> : inr(r.booking.total)}
                       </td>
                     )}
                     {isOwner && (
-                      <td className="right num hide-sm">{r.counted ? (r.pending > 0 ? inr(r.pending) : <span className="faint">Paid</span>) : <span className="faint">—</span>}</td>
+                      <td className="right num hide-sm e-bal">{r.counted ? (r.pending > 0 ? inr(r.pending) : <span className="faint">Paid</span>) : <span className="faint">—</span>}</td>
                     )}
                   </tr>
                 ))}

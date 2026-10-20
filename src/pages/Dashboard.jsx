@@ -1,9 +1,11 @@
+import { budgetStatus } from '../lib/budget.js';
+import NextUp from '../components/NextUp.jsx';
 import ReminderButton from '../components/ReminderButton.jsx';
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 import { useUi } from '../uiContext.jsx';
-import { Empty, Icon, Kpi, PageHead, StatusPill } from '../components/ui.jsx';
+import { Empty, Icon, Kpi, PageHead, StatusPill, TypeTag } from '../components/ui.jsx';
 import { BarsChart, ChartCard } from '../components/Charts.jsx';
 import { money } from './RevenueGraphs.jsx';
 import { addDays, diffDays, parseISO } from '../lib/dates.js';
@@ -40,6 +42,7 @@ export default function Dashboard() {
     () => data.rows.filter((r) => r.counted && r.booking.date < today && r.pending > 0).sort((a, b) => b.pending - a.pending),
     [data.rows, today],
   );
+  const overBudget = useMemo(() => budgetStatus(state.settings, data, today).filter((b) => b.over), [state.settings, data, today]);
   const duesTotal = dues.reduce((s, r) => s + r.pending, 0);
 
   const empty = state.bookings.length === 0;
@@ -58,6 +61,12 @@ export default function Dashboard() {
         </div>
       ) : (
         <div className="stack">
+          <NextUp upcoming={upcoming} today={today} onNewBooking={() => ui.newBooking()} />
+          {overBudget.length > 0 && (
+            <div className="note" role="status">
+              Over budget this month: {overBudget.map((b) => `${b.name} (${inr(b.spent - b.budget)} over)`).join(', ')}. <Link to="/costs">See expenses</Link>
+            </div>
+          )}
           <div className="grid cols-4">
             <Kpi accent label={`Revenue in ${MONTHS_LONG[m - 1]}`} value={inrShort(stats.thisMonth.total)} sub={`${plural(stats.thisMonth.events, 'event')}${stats.thisMonth.cancel ? ` · ${inrShort(stats.thisMonth.cancel)} kept advances` : ''}`} />
             <Kpi label={`Revenue in ${y}`} value={inrShort(stats.thisYear.total)} sub={`${plural(stats.thisYear.events, 'event')}`} />
@@ -82,7 +91,7 @@ export default function Dashboard() {
                         </div>
                         <div className="grow">
                           <div className="t ellipsis"><Link to={`/events/${r.id}`}>{r.client.name}</Link></div>
-                          <div className="small muted">{r.eventType} · {dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : `in ${dd} days`}{r.counted && r.pending > 0 ? ` · ${inr(r.pending)} due` : ''}</div>
+                          <div className="small muted"><TypeTag name={r.eventType} /> · {dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : `in ${dd} days`}{r.counted && r.pending > 0 ? ` · ${inr(r.pending)} due` : ''}</div>
                         </div>
                         <StatusPill status={r.booking.status} />
                       </div>
@@ -106,7 +115,7 @@ export default function Dashboard() {
                     <div className="list-row" key={r.id}>
                       <div className="grow">
                         <div className="t ellipsis"><Link to={`/events/${r.id}`}>{r.client.name}</Link></div>
-                        <div className="small muted">{fmtDate(r.booking.date)} · {r.eventType}</div>
+                        <div className="small muted">{fmtDate(r.booking.date)} · <TypeTag name={r.eventType} /></div>
                       </div>
                       <b className="num bad">{inr(r.pending)}</b>
                       <ReminderButton row={r} small />

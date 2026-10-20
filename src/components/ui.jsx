@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { searchRows } from '../lib/search.js';
 import { fmtDate } from '../lib/format.js';
+import { typeColor } from '../lib/constants.js';
 
 const P = {
   home: 'M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
@@ -105,6 +106,11 @@ export function Kpi({ label, value, sub, accent, tone }) {
       {sub && <div className="sub">{sub}</div>}
     </div>
   );
+}
+
+/** A booking type with its own colour dot. */
+export function TypeTag({ name }) {
+  return <span className="type-tag"><i style={{ background: typeColor(name) }} aria-hidden="true" />{name}</span>;
 }
 
 export function PageHead({ title, sub, children }) {

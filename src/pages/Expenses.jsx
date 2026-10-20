@@ -6,6 +6,7 @@ import { PAYMENT_MODES, REPEATS, catColor, expenseCategories } from '../lib/cons
 import { downloadText, toCSV } from '../lib/csv.js';
 import { isValidISO, parseISO } from '../lib/dates.js';
 import { fmtDate, inr, inrShort, MONTHS_LONG, plural, toPaise, toRupeesInput } from '../lib/format.js';
+import { budgetStatus } from '../lib/budget.js';
 import { newId, repeatDates } from '../lib/reducer.js';
 import { openStored, prepareFile, putFile } from '../lib/files.js';
 import { billFileId } from '../lib/filerefs.js';
@@ -59,6 +60,7 @@ export default function Expenses() {
     return [...m.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [list]);
   const month = parseISO(today).m;
+  const budgets = useMemo(() => budgetStatus(state.settings, data, today), [state.settings, data, today]);
   const thisMonthTotal = all.filter((x) => x.year === thisYear && parseISO(x.date).m === month).reduce((s, x) => s + x.amount, 0);
   const labourNote = 'Staff wages are not listed here: they are worked out from attendance and counted on the event.';
 
@@ -121,6 +123,19 @@ export default function Expenses() {
         </div>
       ) : (
         <div className="stack">
+          {budgets.length > 0 && (
+            <section className="card" aria-label="This month against your budgets">
+              <div className="card-head"><div><h2>This month against your budgets</h2><p>{MONTHS_LONG[month - 1]} {thisYear}. Set the limits in <Link to="/settings">Settings</Link>.</p></div></div>
+              <div style={{ display: "grid", gap: 14 }}>
+                {budgets.map((b) => (
+                  <div key={b.name}>
+                    <div className="row" style={{ justifyContent: 'space-between' }}><span className="t">{b.name}</span><span className={`small num ${b.over ? 'bad' : 'muted'}`}>{inr(b.spent)} of {inr(b.budget)}{b.over ? ` · ${inr(b.spent - b.budget)} over` : ` · ${inr(b.left)} left`}</span></div>
+                    <div style={{ height: 8, background: 'var(--line)', borderRadius: 6, overflow: 'hidden' }}><div style={{ width: `${b.pct}%`, height: '100%', background: b.over ? 'var(--red)' : b.pct >= 80 ? '#d9a21b' : 'var(--green-2)' }} /></div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
           <section className="card" aria-label="Spending by category">
             <div className="card-head"><div><h2>By category</h2><p>{year === 'all' ? 'All years' : year}. {labourNote}</p></div><Link className="btn small" to="/expenses">Expense graphs</Link></div>
             {byCat.length === 0 ? <p className="muted small">Nothing to show.</p> : (

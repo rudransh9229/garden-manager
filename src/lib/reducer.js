@@ -22,6 +22,13 @@ export function repeatDates(start, repeat, count) {
   return Array.from({ length: n }, (_, i) => addMonths(start, i * step));
 }
 
+/** A copy of the budgets with one category renamed (to = a name) or dropped (to = null). */
+function renameKey(budgets, from, to) {
+  if (!budgets || !(from in budgets)) return budgets;
+  const { [from]: v, ...rest } = budgets;
+  return to ? { ...rest, [to]: v } : rest;
+}
+
 const sumPayments = (state, bookingId) =>
   state.payments.filter((p) => p.bookingId === bookingId).reduce((s, p) => s + p.amount, 0);
 
@@ -228,6 +235,15 @@ export function reducer(state, action) {
       if (!name || name.toLowerCase() === LABOUR.toLowerCase() || cats.some((c) => c.toLowerCase() === name.toLowerCase())) return state;
       return { ...state, settings: { ...state.settings, expenseCategories: [...cats, name] } };
     }
+    case 'setBudget': {
+      // A monthly limit for one expense category. Zero or empty removes it.
+      const cats = expenseCategories(state.settings);
+      if (!cats.includes(action.category)) return state;
+      const budgets = { ...(state.settings.budgets || {}) };
+      const amt = Math.round(Number(action.amount) || 0);
+      if (amt > 0) budgets[action.category] = amt; else delete budgets[action.category];
+      return { ...state, settings: { ...state.settings, budgets } };
+    }
     case 'renameExpenseCategory': {
       const name = String(action.to || '').trim();
       const cats = expenseCategories(state.settings);
@@ -235,7 +251,7 @@ export function reducer(state, action) {
       if (cats.some((c) => c !== action.from && c.toLowerCase() === name.toLowerCase())) return state;
       return {
         ...state,
-        settings: { ...state.settings, expenseCategories: cats.map((c) => (c === action.from ? name : c)) },
+        settings: { ...state.settings, expenseCategories: cats.map((c) => (c === action.from ? name : c)), budgets: renameKey(state.settings.budgets, action.from, name) },
         expenses: state.expenses.map((e) => (e.category === action.from ? { ...e, category: name } : e)),
       };
     }
@@ -248,7 +264,7 @@ export function reducer(state, action) {
       if (inUse && (!target || target === action.name || !cats.includes(target))) return state;
       return {
         ...state,
-        settings: { ...state.settings, expenseCategories: cats.filter((c) => c !== action.name) },
+        settings: { ...state.settings, expenseCategories: cats.filter((c) => c !== action.name), budgets: renameKey(state.settings.budgets, action.name, null) },
         expenses: inUse ? state.expenses.map((e) => (e.category === action.name ? { ...e, category: target } : e)) : state.expenses,
       };
     }

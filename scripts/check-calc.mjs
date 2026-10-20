@@ -21,6 +21,7 @@ import { readBackup } from '../src/lib/backup.js';
 import { createPeopleApi, makePassword } from '../src/lib/backends/people.js';
 import { createFirestoreFileStore } from '../src/lib/backends/firestoreFiles.js';
 import { repeatDates } from '../src/lib/reducer.js';
+import { budgetStatus } from '../src/lib/budget.js';
 import { fileRefs, keepIds, billFileId } from '../src/lib/filerefs.js';
 import { paiseInWords } from '../src/lib/words.js';
 import { whatsappNumber, reminderText, whatsappLink } from '../src/lib/reminder.js';
@@ -646,6 +647,26 @@ console.log('Expense bills (files)');
   ok(!keepIds(reducer(gone, { type: 'purgeBin' })).includes(billFileId(e)), 'and is let go once the bin is emptied');
   const upd = reducer(base, { type: 'updateExpense', id: e.id, patch: { hasBill: true, billName: 'x.pdf' } });
   eq(upd.expenses.find((x) => x.id === e.id).billName, 'x.pdf', 'a bill can be attached to an existing expense');
+}
+
+console.log('Monthly budgets');
+{
+  const base = buildSeed('2026-10-19');
+  const cats = expenseCategories(base.settings);
+  const set = reducer(base, { type: 'setBudget', category: 'Painting', amount: 500000 });
+  eq(set.settings.budgets.Painting, 500000, 'a budget is saved for a category');
+  eq(Object.keys(reducer(set, { type: 'setBudget', category: 'Painting', amount: 0 }).settings.budgets).length, 0, 'zero removes it');
+  ok(reducer(base, { type: 'setBudget', category: 'Nonsense', amount: 100 }) === base, 'unknown category is ignored');
+  const ren = reducer(set, { type: 'renameExpenseCategory', from: 'Painting', to: 'Painting and polish' });
+  eq(ren.settings.budgets['Painting and polish'], 500000, 'renaming a category moves its budget');
+  const rem = reducer(set, { type: 'removeExpenseCategory', name: 'Painting', moveTo: 'Other' });
+  ok(!('Painting' in (rem.settings.budgets || {})), 'removing a category drops its budget');
+  const withSpend = reducer(set, { type: 'addExpense', expense: { bookingId: '', category: 'Painting', amount: 700000, date: '2026-10-05' } });
+  const d = computeAll(withSpend);
+  const st = budgetStatus(withSpend.settings, d, '2026-10-19');
+  ok(st.length === 1 && st[0].over && st[0].spent >= 700000 && st[0].left < 0, 'spending past the budget shows as over');
+  eq(budgetStatus(withSpend.settings, d, '2026-11-02')[0].spent, 0, 'next month starts at zero');
+  eq(budgetStatus(base.settings, computeAll(base), '2026-10-19').length, 0, 'no budgets, nothing to show');
 }
 
 console.log('Import helpers');

@@ -397,3 +397,178 @@ textarea { border: 1px solid var(--line-2); border-radius: 9px; padding: 9px 11p
 /* A wide file picker must not stretch the form past its card */
 .form-grid > * { min-width: 0; }
 input[type='file'] { max-width: 100%; }
+
+/* ---------- identity: the garland ---------- */
+.garland { height: 12px; background:
+  radial-gradient(circle at 5px 6px, var(--marigold) 4.2px, transparent 4.7px) 0 0 / 18px 12px,
+  radial-gradient(circle at 13.5px 6px, #d9692a 3.2px, transparent 3.7px) 0 0 / 18px 12px; }
+.brand { display: flex; align-items: center; gap: 11px; }
+.signin-head { display: flex; gap: 14px; align-items: center; margin: 4px 0 18px; }
+.signin-head h2 { font-size: 22px; } .signin-head p { font-size: 14px; margin-top: 2px; }
+.shell-card { overflow: hidden; } .shell-card > .garland { margin: -18px -18px 18px; }
+.splash-ring { background: #fff; box-shadow: 0 0 0 1px var(--line); }
+
+.nextup { background: var(--green); color: #f3f6f1; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.nextup-body { padding: 18px 22px 22px; }
+.nextup-hello { font-size: 13px; color: #b9d0c0; }
+.nextup-title { font-size: clamp(24px, 4vw, 34px); margin: 4px 0 14px; color: #fff; }
+.nextup-event { display: flex; gap: 16px; align-items: flex-start; }
+.nextup-date { flex: none; width: 64px; text-align: center; background: var(--card); color: var(--green); border-radius: 12px; padding: 8px 0 7px; line-height: 1.05; border-bottom: 4px solid var(--marigold); }
+.nextup-date b { display: block; font: 700 28px var(--font-head); }
+.nextup-date span { font-size: 13px; font-weight: 500; }
+.nextup-name { font: 700 20px var(--font-head); } .nextup-name a { text-decoration: none; } .nextup-name a:hover { text-decoration: underline; }
+.nextup-meta { color: #c9dccf; font-size: 14px; margin-top: 1px; }
+.nextup-due { margin-top: 9px; font-weight: 600; color: #ffe29a; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.nextup-due .btn { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
+.nextup-ok { margin-top: 9px; color: #b9d0c0; font-size: 14px; }
+.nextup-more { margin-top: 12px; font-size: 13px; color: #b9d0c0; }
+.nextup .btn { border-color: rgba(255,255,255,.4); } .nextup .btn.primary { background: var(--marigold); color: #2b2000; border-color: var(--marigold); }
+.nextup a { color: inherit; }
+@media (max-width: 560px) { .nextup-body { padding: 16px 16px 20px; } .nextup-date { width: 56px; } .nextup-name { font-size: 18px; } }
+
+/* =====================================================================
+   Polish layer: quieter tables and links, steadier numbers, sharper hierarchy.
+   The boldness stays in two places: the marigold garland and the event hero.
+   ===================================================================== */
+:root {
+  --page: #f2f5f0;
+  --card: #fffefb;
+  --line: #e4e8df;
+  --green: #14372a;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(20, 55, 42, 0.04), 0 6px 20px rgba(20, 55, 42, 0.05);
+}
+body { font-feature-settings: 'tnum' 1, 'cv11' 1; text-rendering: optimizeLegibility; }
+h1 { font-size: 27px; letter-spacing: -0.02em; }
+.page-head { margin-bottom: 22px; }
+.page-head p { font-size: 14.5px; line-height: 1.5; }
+
+/* sidebar */
+.brand { padding: 2px 10px 18px; margin-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.09); }
+.brand-text span { display: block; font: 700 18px/1.15 var(--font-head); letter-spacing: -0.01em; }
+.brand-text small { display: block; font: 500 12px var(--font); color: #a9c2b3; margin-top: 3px; letter-spacing: 0.01em; }
+.nav-group { font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; color: #7fa08c; padding: 18px 10px 5px; }
+.nav a { transition: background 0.12s; }
+.nav a.active { background: rgba(255, 255, 255, 0.12); font-weight: 600; }
+
+/* top bar */
+.topbar { background: rgba(255, 254, 251, 0.92); backdrop-filter: blur(8px); }
+.sync { display: inline-flex; align-items: center; gap: 7px; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #2f9e5f; flex: none; }
+.sync-dot.busy { background: var(--marigold); animation: sync-pulse 1s ease-in-out infinite; }
+@keyframes sync-pulse { 50% { opacity: 0.35; } }
+
+/* links inside lists and tables are quiet until pointed at */
+.list-row a, td a, .t a { text-decoration: none; font-weight: 600; color: var(--green); }
+.list-row a:hover, td a:hover, .t a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.list-row a.btn, td a.btn { font-weight: 500; color: inherit; text-decoration: none; }
+.card-head a:not(.btn) { color: var(--green-2); font-weight: 600; text-decoration: none; font-size: 13.5px; }
+.card-head a:not(.btn):hover { text-decoration: underline; text-underline-offset: 3px; }
+.back { text-decoration: none; color: var(--green-2); font-weight: 600; font-size: 14px; }
+.back:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* cards and numbers */
+.card { transition: box-shadow 0.15s; }
+.kpi { padding: 16px 18px 15px; }
+.kpi .label { font-size: 12.5px; font-weight: 500; color: var(--ink-3); }
+.kpi .value { font-size: 29px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kpi .sub { margin-top: 4px; line-height: 1.35; }
+
+.kpi.accent .label { color: #a9c6b3; }
+
+/* tables */
+th { font-size: 12.5px; font-weight: 600; color: var(--ink-3); background: #f6f8f3; padding: 10px 10px; border-bottom: 1px solid var(--line-2); letter-spacing: 0.01em; }
+th:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+thead tr { border-bottom: 0; }
+td { padding: 12px 10px; }
+td.right, th.right { font-variant-numeric: tabular-nums; }
+tbody tr { transition: background 0.1s; }
+tbody tr:hover { background: #f7f9f4; }
+
+/* buttons */
+.btn { border-radius: 10px; font-weight: 600; font-size: 14px; transition: background 0.12s, box-shadow 0.12s, transform 0.05s; }
+.btn:active { transform: translateY(1px); }
+.btn.primary { box-shadow: 0 1px 2px rgba(20, 55, 42, 0.25); }
+.btn.small { font-weight: 500; }
+.btn.danger { font-weight: 500; }
+.chip, .seg button { font-weight: 500; }
+
+/* inputs */
+input[type='text'], input[type='search'], input[type='number'], input[type='date'], input[type='tel'], input[type='email'], input[type='password'], select, textarea { border-radius: 10px; transition: border-color 0.12s, box-shadow 0.12s; }
+input:hover:not(:focus), select:hover:not(:focus), textarea:hover:not(:focus) { border-color: #b9c3b3; }
+
+/* pills a touch calmer */
+.pill { font-weight: 600; font-size: 12px; padding: 3px 10px; }
+
+/* calendar */
+.cal .day { transition: background 0.1s; }
+
+/* phone */
+@media (max-width: 560px) {
+  h1 { font-size: 23px; }
+  .role-switch > span, .role-switch label { display: none; }
+  .page-head { margin-bottom: 16px; gap: 10px; }
+  .kpi .value { font-size: 23px; }
+  .card { padding: 16px; }
+}
+
+/* Events list on a phone: one card per event */
+@media (max-width: 560px) {
+  .search-examples { gap: 0 14px; align-items: center; }
+  .search-examples button { padding: 3px 0; min-height: 30px; }
+  table.events-sm thead { display: none; }
+  table.events-sm tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who stat" "date amt" "type bal"; gap: 3px 12px; padding: 13px 6px; border-bottom: 1px solid var(--line); align-items: center; }
+  table.events-sm tbody td { display: block; padding: 0; border: 0; min-width: 0; }
+  table.events-sm .e-who { grid-area: who; } table.events-sm .e-stat { grid-area: stat; justify-self: end; }
+  table.events-sm .e-date { grid-area: date; color: var(--ink-2); font-size: 13px; }
+  table.events-sm .e-type { grid-area: type; display: block; color: var(--ink-3); font-size: 13px; }
+  table.events-sm .e-amt { grid-area: amt; font-weight: 600; }
+  table.events-sm .e-bal { grid-area: bal; display: block; font-size: 13px; color: var(--red); }
+  table.events-sm .e-bal .faint { color: var(--ink-3); }
+  table.events-sm .e-bal:not(:has(.faint))::after { content: ' due'; color: var(--ink-3); }
+  .table-wrap { margin: 0; padding: 0; }
+}
+
+/* =====================================================================
+   Colour: each kind of number and each part of the menu gets its own hue.
+   ===================================================================== */
+body {
+  background:
+    radial-gradient(820px 280px at 92% -60px, rgba(227, 162, 26, 0.13), transparent 70%),
+    radial-gradient(760px 300px at 8% -80px, rgba(26, 143, 134, 0.10), transparent 70%),
+    var(--page);
+  background-attachment: fixed;
+}
+/* stat tiles: the first is the filled green one, the rest rotate through soft tints with a colour bar */
+.grid > .kpi:not(.accent) { position: relative; overflow: hidden; border-color: transparent; }
+.grid > .kpi:not(.accent)::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0; background: var(--k, var(--green-2)); }
+.grid > .kpi:nth-child(2) { --k: #e3a21a; background: #fdf4dc; }
+.grid > .kpi:nth-child(3) { --k: #1a8f86; background: #e1f3f0; }
+.grid > .kpi:nth-child(4) { --k: #c2456b; background: #fbe8ee; }
+.grid > .kpi:nth-child(5) { --k: #4a55a2; background: #e8eaf8; }
+.grid > .kpi:nth-child(6) { --k: #d9692a; background: #fdeadd; }
+.grid > .kpi:not(.accent) .label { color: #56635b; }
+.grid > .kpi:not(.accent) .sub { color: #66736b; }
+
+/* menu icons by group */
+.nav a[data-group='run'] svg { color: #f2c35a; }
+.nav a[data-group='money'] svg { color: #7fd1a6; }
+.nav a[data-group='team'] svg { color: #8cc5ee; }
+.nav a[data-group='setup'] svg { color: #c9b8f2; }
+.nav a.active svg { opacity: 1; }
+
+/* booking types */
+.type-tag { display: inline-flex; align-items: center; gap: 6px; }
+.type-tag i { width: 9px; height: 9px; border-radius: 3px; flex: none; transform: rotate(45deg); }
+
+/* card headings get a short colour mark */
+.card-head h2 { position: relative; padding-left: 12px; }
+.card-head h2::before { content: ''; position: absolute; left: 0; top: 0.2em; bottom: 0.2em; width: 4px; border-radius: 3px; background: var(--marigold); }
+.stack > .card:nth-of-type(3n+2) .card-head h2::before { background: #1a8f86; }
+.stack > .card:nth-of-type(3n) .card-head h2::before { background: #c2456b; }
+.grid > .card:nth-child(even) .card-head h2::before { background: #4a55a2; }
+
+/* primary action: deep green with a marigold underline on hover-free state kept calm */
+.btn.primary { background: linear-gradient(180deg, #1c4a37, var(--green)); }
+.btn.primary:hover { background: linear-gradient(180deg, #226048, #1c4a37); }

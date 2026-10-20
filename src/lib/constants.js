@@ -59,3 +59,13 @@ export function catColor(name, categories) {
   const i = Math.max(0, extras.indexOf(name));
   return COLORS.extraCats[i % COLORS.extraCats.length];
 }
+
+/** A colour for each booking type, so Wedding, Engagement and the rest are easy to tell apart in lists. */
+const TYPE_COLORS = { Wedding: '#c2456b', Engagement: '#4a55a2', Reception: '#1a8f86', Birthday: '#d9692a', Other: '#6b7a70' };
+const TYPE_SPARE = ['#8a5a9e', '#a07a14', '#2b7bb9', '#9a4d3a', '#4f8f3a'];
+export function typeColor(name) {
+  if (TYPE_COLORS[name]) return TYPE_COLORS[name];
+  let h = 0;
+  for (const ch of String(name || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return TYPE_SPARE[h % TYPE_SPARE.length];
+}
