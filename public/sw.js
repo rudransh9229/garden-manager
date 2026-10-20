@@ -1,6 +1,6 @@
 // Lets the app open instantly and even without a signal. It only remembers the app's own files
 // (never your records: those come from Firebase, which keeps its own copy on the device).
-const CACHE = 'garden-manager-v1';
+const CACHE = 'garden-manager-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
