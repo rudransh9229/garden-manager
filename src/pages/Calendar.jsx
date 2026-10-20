@@ -2,9 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store.jsx';
 import { useUi } from '../uiContext.jsx';
-import { Icon, PageHead, StatusPill } from '../components/ui.jsx';
+import { Icon, PageHead, StatusPill, TypeTag } from '../components/ui.jsx';
 import { daysInMonth, isoFrom, parseISO, weekday } from '../lib/dates.js';
-import { fmtDate, inr, MONTHS_LONG, plural, WEEKDAYS } from '../lib/format.js';
+import { fmtDate, inr, MONTHS, MONTHS_LONG, plural, WEEKDAYS } from '../lib/format.js';
 
 const SHOWN = ['Confirmed', 'Tentative', 'Enquiry', 'Completed'];
 
@@ -14,6 +14,8 @@ export default function Calendar() {
   const t = parseISO(today);
   const [cur, setCur] = useState({ y: t.y, m: t.m });
   const [sel, setSel] = useState(today);
+  const [view, setViewState] = useState(() => { try { return localStorage.getItem('garden-cal-view') === 'grid' ? 'grid' : 'list'; } catch { return 'list'; } });
+  const setView = (v) => { setViewState(v); try { localStorage.setItem('garden-cal-view', v); } catch { /* not saved, still works */ } };
 
   const byDate = useMemo(() => {
     const m = new Map();
@@ -38,10 +40,12 @@ export default function Calendar() {
   const years = [];
   for (let y = t.y - 7; y <= t.y + 3; y++) years.push(y);
   const day = byDate.get(sel) || [];
+  const prefix = `${cur.y}-${String(cur.m).padStart(2, '0')}`;
+  const booked = [...byDate.entries()].filter(([d]) => d.startsWith(prefix)).sort(([a], [b]) => (a < b ? -1 : 1));
 
   return (
     <div className="page">
-      <PageHead title="Calendar" sub="Booked dates at a glance. Click a day to see what is on it.">
+      <PageHead title="Calendar">
         {isOwner && <button className="btn primary" onClick={() => ui.newBooking(sel)}><Icon name="plus" />New booking</button>}
       </PageHead>
 
@@ -57,8 +61,36 @@ export default function Calendar() {
         </select>
         <button className="btn" onClick={() => { setCur({ y: t.y, m: t.m }); setSel(today); }}>Today</button>
         <span className="muted small" style={{ marginLeft: 'auto' }}>{plural(monthCount, 'event')} this month</span>
+        <div className="seg" role="group" aria-label="How to show the month">
+          <button aria-pressed={view === 'list'} onClick={() => setView('list')}>List</button>
+          <button aria-pressed={view === 'grid'} onClick={() => setView('grid')}>Calendar</button>
+        </div>
       </div>
 
+      {view === 'list' && (
+        <section className="card booked" aria-label={`Booked dates in ${MONTHS_LONG[cur.m - 1]} ${cur.y}`}>
+          {booked.length === 0 ? (
+            <p className="muted">Nothing booked in {MONTHS_LONG[cur.m - 1]} {cur.y}.</p>
+          ) : (
+            <div className="list">
+              {booked.flatMap(([iso, list]) => list.map((r, i) => (
+                <div className={`list-row booked-row${iso === today ? ' today' : ''}${iso < today ? ' past' : ''}`} key={r.id}>
+                  <div className="booked-date" aria-label={fmtDate(iso)}>
+                    {i === 0 ? (<><b>{Number(iso.slice(8))}</b><span>{WEEKDAYS[weekday(iso)]} {MONTHS[cur.m - 1]}</span></>) : null}
+                  </div>
+                  <div className="grow">
+                    <div className="t"><Link to={`/events/${r.id}`}>{r.client.name}</Link></div>
+                    <div className="small muted"><TypeTag name={r.eventType} />{r.booking.guests ? ` · ${r.booking.guests} guests` : ''}{isOwner && r.counted ? ` · ${r.pending > 0 ? `${inr(r.pending)} due` : 'fully paid'}` : ''}</div>
+                  </div>
+                  <StatusPill status={r.booking.status} />
+                </div>
+              )))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {view === 'grid' && (<>
       <div className="cal" role="grid" aria-label={`${MONTHS_LONG[cur.m - 1]} ${cur.y}`}>
         {WEEKDAYS.map((w) => <div className="dow" key={w} role="columnheader">{w}</div>)}
         {cells.map((iso, i) => {
@@ -109,6 +141,7 @@ export default function Calendar() {
           </div>
         )}
       </section>
+      </>)}
     </div>
   );
 }

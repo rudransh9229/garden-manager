@@ -53,7 +53,7 @@ export default function BalanceSheet() {
 
   return (
     <div className="page">
-      <PageHead title="Balance sheet" sub="Income, expenses, profit and what is still owed, for a financial year, a calendar year or everything. Download it as an Excel file for your accountant or your records.">
+      <PageHead title="Balance sheet">
         <button className="btn primary" onClick={download} disabled={busy || empty}>{busy ? 'Making the file…' : 'Download Excel file'}</button>
       </PageHead>
 
@@ -112,7 +112,7 @@ export default function BalanceSheet() {
                   </tbody>
                 </table>
               </div>
-              <p className="small muted" style={{ padding: '10px 12px' }}>This is a management statement worked out from your records, not an audited accounting balance sheet: the app does not hold bank balances, assets or loans. The Excel file has the same figures plus month by month, every event, garden expenses and what is owed.</p>
+              <p className="small muted" style={{ padding: '10px 12px' }}>A management statement from your records, not an audited balance sheet.</p>
             </section>
 
             <div className="stack">

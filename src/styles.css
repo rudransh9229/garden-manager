@@ -572,3 +572,14 @@ body {
 /* primary action: deep green with a marigold underline on hover-free state kept calm */
 .btn.primary { background: linear-gradient(180deg, #1c4a37, var(--green)); }
 .btn.primary:hover { background: linear-gradient(180deg, #226048, #1c4a37); }
+
+/* Booked dates as a list */
+.booked { padding: 6px 18px; }
+.booked-row { gap: 14px; padding: 10px 0; }
+.booked-date { flex: none; width: 74px; line-height: 1.1; }
+.booked-date b { display: block; font: 700 22px var(--font-head); }
+.booked-date span { font-size: 12.5px; color: var(--ink-3); }
+.booked-row.today { box-shadow: inset 3px 0 0 var(--marigold); padding-left: 12px; margin-left: -12px; background: linear-gradient(90deg, rgba(227, 162, 26, 0.10), transparent 60%); }
+.booked-row.past .booked-date b, .booked-row.past .t { color: var(--ink-2); }
+.booked-row.past .t a { color: var(--ink-2); }
+@media (max-width: 560px) { .booked { padding: 4px 14px; } .booked-date { width: 62px; } }

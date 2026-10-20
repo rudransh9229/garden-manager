@@ -47,7 +47,7 @@ export default function Money() {
 
   return (
     <div className="page">
-      <PageHead title="Revenue and profit" sub="Every event with its price, what you received, what it cost and what was left. Profit is revenue minus expenses (staff wages included).">
+      <PageHead title="Revenue and profit">
         <button className="btn" onClick={exportCsv} disabled={!sorted.length}>Download as spreadsheet</button>
       </PageHead>
 

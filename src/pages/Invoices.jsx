@@ -45,7 +45,7 @@ export default function Invoices() {
 
   return (
     <div className="page">
-      <PageHead title="Invoices" sub="Invoices from previous years stay here, and you add new ones as events happen. The app keeps them. It does not make them.">
+      <PageHead title="Invoices">
         <button className="btn primary" onClick={() => ui.addInvoice()}><Icon name="plus" />Add invoice</button>
       </PageHead>
 

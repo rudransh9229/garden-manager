@@ -49,7 +49,7 @@ export default function Dashboard() {
 
   return (
     <div className="page">
-      <PageHead title="Dashboard" sub={`${state.settings.gardenName} · ${fmtDate(today)}`}>
+      <PageHead title="Dashboard">
         <button className="btn primary" onClick={() => ui.newBooking()}><Icon name="plus" />New booking</button>
       </PageHead>
 

@@ -153,7 +153,7 @@ export default function Import() {
 
   return (
     <>
-      <PageHead title="Import old records" sub="Bring in your earlier years. Only the event date and the client name are needed. Prices and payments are optional, so you can import just the names and dates and attach the invoices afterwards." />
+      <PageHead title="Import old records" sub="Only the event date and client name are needed." />
 
       {done && (
         <div className="note good" style={{ marginBottom: 16 }}>
@@ -181,7 +181,7 @@ export default function Import() {
       {table.length > 0 && (
         <>
           <div className="card">
-            <div className="card-head"><div><h2>2. Check the columns</h2><p>We matched your column names. Change any that look wrong.</p></div></div>
+            <div className="card-head"><div><h2>2. Check the columns</h2></div></div>
             <div className="form-grid">
               {FIELDS.map((f) => (
                 <div className="field" key={f.key}>

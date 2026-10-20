@@ -98,7 +98,7 @@ export default function Staff() {
 
   return (
     <>
-      <PageHead title="Staff" sub={isOwner ? 'Everyone who works at your events, their daily wage, and what each person has earned this month.' : 'Everyone who works at the events. Add a new person here, then pick them on an event.'}>
+      <PageHead title="Staff">
         <button className="btn primary" onClick={() => setEdit('new')}><Icon name="plus" />Add staff member</button>
       </PageHead>
 

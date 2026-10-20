@@ -75,7 +75,7 @@ export default function Expenses() {
 
   return (
     <div className="page">
-      <PageHead title="Expenses" sub="Everything the garden spends: painting, repairs, bills and yearly costs, plus costs entered on an event. They all count toward profit.">
+      <PageHead title="Expenses">
         <button className="btn" onClick={exportCsv} disabled={!sorted.length}>Download as spreadsheet</button>
         <button className="btn primary" onClick={() => setEditing('new')}><Icon name="plus" />Add expense</button>
       </PageHead>
@@ -125,7 +125,7 @@ export default function Expenses() {
         <div className="stack">
           {budgets.length > 0 && (
             <section className="card" aria-label="This month against your budgets">
-              <div className="card-head"><div><h2>This month against your budgets</h2><p>{MONTHS_LONG[month - 1]} {thisYear}. Set the limits in <Link to="/settings">Settings</Link>.</p></div></div>
+              <div className="card-head"><div><h2>Budgets for {MONTHS_LONG[month - 1]}</h2></div></div>
               <div style={{ display: "grid", gap: 14 }}>
                 {budgets.map((b) => (
                   <div key={b.name}>
@@ -137,7 +137,7 @@ export default function Expenses() {
             </section>
           )}
           <section className="card" aria-label="Spending by category">
-            <div className="card-head"><div><h2>By category</h2><p>{year === 'all' ? 'All years' : year}. {labourNote}</p></div><Link className="btn small" to="/expenses">Expense graphs</Link></div>
+            <div className="card-head"><div><h2>By category</h2></div><Link className="btn small" to="/expenses">Expense graphs</Link></div>
             {byCat.length === 0 ? <p className="muted small">Nothing to show.</p> : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '14px 24px' }}>
                 {byCat.map((c) => (

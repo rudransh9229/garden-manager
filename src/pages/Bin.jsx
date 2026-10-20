@@ -15,7 +15,7 @@ export default function Bin() {
 
   return (
     <div className="page">
-      <PageHead title="Bin" sub={`A booking you delete waits here for ${BIN_DAYS} days, with its payments, expenses, attendance and invoices. Put it back any time before then.`}>
+      <PageHead title="Bin" sub={`Kept for ${BIN_DAYS} days, then removed for good.`}>
         {items.length > 1 && <button className="btn danger" onClick={() => setAsk({ kind: 'empty' })}>Empty the bin</button>}
       </PageHead>
       {items.length === 0 ? (

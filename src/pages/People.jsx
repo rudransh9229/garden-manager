@@ -60,10 +60,10 @@ export default function People() {
 
   return (
     <>
-      <PageHead title="People and sign-in" sub="Who can open this app, and as what. This is different from the Staff page, which lists the people who work at events." />
+      <PageHead title="People and sign-in" />
 
       <section className="card" style={{ marginBottom: 18 }}>
-        <div className="card-head"><div><h2>Add a person</h2><p>They get their own email and password. Owners see everything. Managers see bookings, staff and attendance, and no money.</p></div></div>
+        <div className="card-head"><div><h2>Add a person</h2><p>Owners see everything. Managers see no money.</p></div></div>
         <form onSubmit={add}>
           <div className="form-grid">
             <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="off" /></Field>

@@ -31,10 +31,7 @@ export default function Attendance() {
 
   return (
     <>
-      <PageHead
-        title="Attendance"
-        sub={`Pick who is working each event and mark who came. ${isOwner ? '' : `You can change events from the last ${MANAGER_EDIT_DAYS} days.`}`}
-      />
+      <PageHead title="Attendance" sub={isOwner ? undefined : `You can change events from the last ${MANAGER_EDIT_DAYS} days.`} />
       {groups.length === 0 ? (
         <div className="card">
           <Empty title="No events around today" action={<Link className="btn" to="/events">Find an older event</Link>}>

@@ -15,7 +15,7 @@ export default function Settings() {
 
   return (
     <div className="page">
-      <PageHead title="Settings" sub="Your garden's name, booking types, expense categories, seasons and backups." />
+      <PageHead title="Settings" />
       <div className="stack">
         <section className="card">
           <div className="card-head"><h2>Garden</h2></div>
@@ -59,7 +59,7 @@ function BookingTypes() {
   return (
     <section className="card">
       <div className="card-head">
-        <div><h2>Booking types</h2><p>These appear when you add a booking. Add the kinds of events you host, and remove the ones you do not.</p></div>
+        <div><h2>Booking types</h2></div>
       </div>
       <div className="list">
         {types.map((t) => (
@@ -117,7 +117,7 @@ function ExpenseCategories() {
   return (
     <section className="card">
       <div className="card-head">
-        <div><h2>Expense categories</h2><p>The kinds of cost you pick when you add an expense, such as Painting or Repairs. Add your own, rename them, or remove the ones you do not use.</p></div>
+        <div><h2>Expense categories</h2><p>Optionally set a monthly budget for each.</p></div>
       </div>
       <div className="list">
         {cats.map((c) => (
@@ -230,7 +230,7 @@ function Seasons() {
   return (
     <section className="card">
       <div className="card-head">
-        <div><h2>Seasons</h2><p>Choose which months belong to each season. The revenue and expense graphs group your events this way, for every year.</p></div>
+        <div><h2>Seasons</h2><p>Which months belong to each season.</p></div>
       </div>
       <div className="season-grid">
         {seasons.map((s) => (
@@ -292,10 +292,10 @@ function Data({ today, state, dispatch, notify, startFresh, loadDemo, canLoadDem
         </label>
       </div>
       {err && <p className="err small" role="alert" style={{ color: 'var(--red)', marginTop: 8 }}>{err}</p>}
-      <p className="small muted" style={{ marginTop: 8 }}>The backup is one .zip file holding all your records and every invoice file. Keep a copy somewhere other than this device, for example your email or a USB drive. Do it after any big day of entries.</p>
+      <p className="small muted" style={{ marginTop: 8 }}>One .zip with all records and files. Keep a copy off this device.</p>
       <hr className="sep" />
       <h3 style={{ marginBottom: 8 }}>Demo data</h3>
-      <p className="muted" style={{ marginBottom: 10 }}>The app starts with made-up clients and six years of invented events so you can try everything. When you are ready to use your own records, clear it.</p>
+      <p className="muted" style={{ marginBottom: 10 }}>Made-up records to try the app. Clear them when you start with your own.</p>
       <div className="row">
         <button className="btn danger" onClick={() => setAsk({ kind: 'fresh' })}>Clear everything and start fresh</button>
         {canLoadDemo && <button className="btn" onClick={() => setAsk({ kind: 'demo' })}>Load the demo data again</button>}
@@ -327,7 +327,7 @@ function Reminder() {
   const sample = { client: { name: 'Sharma' }, booking: { date: addDays(todayISO(), 20) }, eventType: 'Wedding', pending: 12500000 };
   return (
     <section className="card">
-      <div className="card-head"><div><h2>Payment reminder message</h2><p>The WhatsApp message sent from the "WhatsApp reminder" button on an event with money still due. You can change the words. Keep the parts in curly brackets: {'{name} {amount} {date} {event} {garden}'}.</p></div></div>
+      <div className="card-head"><div><h2>Payment reminder message</h2><p>Words you can use: {'{name} {amount} {date} {event} {garden}'}</p></div></div>
       <Field label="Message"><textarea rows={4} value={text} onChange={(e) => setText(e.target.value)} style={{ width: '100%' }} /></Field>
       <p className="small muted" style={{ marginBottom: 10 }}><b>How it looks:</b> {reminderText(text, sample, state.settings.gardenName)}</p>
       <div className="row">

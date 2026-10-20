@@ -8,7 +8,6 @@ import { fmtDate, fmtPhone, inr, plural } from '../lib/format.js';
 import { STATUSES } from '../lib/constants.js';
 
 const PAGE = 40;
-const EXAMPLES = ['Sharma', '4 Nov 2023', 'Nov 2023', '2022', '25 Dec', 'INV-2023-014'];
 
 export default function Events() {
   const { data, state, isOwner } = useStore();
@@ -40,17 +39,13 @@ export default function Events() {
 
   return (
     <div className="page">
-      <PageHead title="Events" sub="Every booking since the garden opened. Type a client name or a date to find an old event.">
+      <PageHead title="Events">
         {isOwner && <button className="btn primary" onClick={() => ui.newBooking()}><Icon name="plus" />New booking</button>}
       </PageHead>
 
       <div className="search-big">
         <Icon name="search" />
         <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Client name, phone or date" aria-label="Search events" autoFocus />
-      </div>
-      <div className="search-examples">
-        <span>Try:</span>
-        {EXAMPLES.map((ex) => <button key={ex} onClick={() => setQ(ex)}>{ex}</button>)}
       </div>
 
       <div className="row" style={{ margin: '18px 0 12px' }}>

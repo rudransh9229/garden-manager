@@ -5,7 +5,7 @@ import { BarsAndLine, BarsChart, ChartCard, Donut, Empty0, yearColor } from '../
 import { AnalyticsFilters, DrillPanel, Highlights } from '../components/AnalyticsBits.jsx';
 import { money } from './RevenueGraphs.jsx';
 import { COLORS, catColor } from '../lib/constants.js';
-import { applyFilters, argmax, byYear, bySeasonYear, growth, monthly, yearsIn } from '../lib/analytics.js';
+import { applyFilters, argmax, bySeasonYear, growth, monthly, yearsIn } from '../lib/analytics.js';
 import { fmtPct, inr, inrShort } from '../lib/format.js';
 
 export default function ExpenseGraphs() {
@@ -21,7 +21,6 @@ export default function ExpenseGraphs() {
   const cats = data.categories;
   const months = useMemo(() => monthly(filtered, f.year, cats), [filtered, f.year, cats]);
   const sy = useMemo(() => bySeasonYear(across, state.settings), [across, state.settings]);
-  const perYear = useMemo(() => byYear(across).map((y) => ({ ...y, label: String(y.year) })), [across]);
 
   const catTotals = useMemo(() => {
     const t = cats.map((c) => ({ name: c, value: months.reduce((s, m) => s + (m[c] || 0), 0), color: catColor(c, cats) }));
@@ -43,11 +42,11 @@ export default function ExpenseGraphs() {
 
   return (
     <div className="page">
-      <PageHead title="Expense graphs" sub="See where the money goes: by month, by kind of cost and by season. Click any bar to see the events behind it." />
-      <AnalyticsFilters f={f} setF={setFilters} years={years} settings={state.settings} types={state.settings.eventTypes} yearNote="The season and year comparisons always show every year. The other charts follow the year you pick. Garden costs (from the Expenses page) are included, except when you pick one booking type." />
+      <PageHead title="Expense graphs" />
+      <AnalyticsFilters f={f} setF={setFilters} years={years} settings={state.settings} types={state.settings.eventTypes} />
 
       {nothing ? (
-        <div className="card"><Empty0>No expenses are recorded for this selection. Add garden costs on the Expenses page, add event costs on an event's page, or mark staff attendance so labour cost appears.</Empty0></div>
+        <div className="card"><Empty0>No expenses for this selection.</Empty0></div>
       ) : (
         <>
           <Highlights items={[
@@ -60,17 +59,17 @@ export default function ExpenseGraphs() {
           <div className="stack">
             <ChartCard
               title={f.year === 'all' ? 'Expenses by month, all years' : `Expenses by month, ${f.year}`}
-              columns={[{ key: 'label', label: 'Month' }, money('expenses', 'Expenses'), { key: 'events', label: 'Events' }]}
+              legend={catSeries}
+              columns={[{ key: 'label', label: 'Month' }, ...cats.map((c) => money(c, c)), money('expenses', 'Total')]}
               rows={months}
-              csvName="expenses-by-month"
+              csvName="expenses-kind-by-month"
             >
-              <BarsChart data={months} series={[{ key: 'expenses', name: 'Expenses', color: COLORS.expenses }]} onPick={(b) => pick(yrLabel(b), b)} height={270} />
+              <BarsChart data={months} series={catSeries} stacked onPick={(b) => pick(yrLabel(b), b)} height={300} />
             </ChartCard>
 
             <div className="grid cols-2">
               <ChartCard
                 title="Where the money goes"
-                sub={f.year === 'all' ? 'All years' : String(f.year)}
                 columns={[{ key: 'name', label: 'Kind of cost' }, money('value', 'Amount'), { key: 'pct', label: 'Share', fmt: (v) => `${v}%` }]}
                 rows={catTotals.map((c) => ({ ...c, pct: totalExp ? Math.round((c.value / totalExp) * 100) : 0 }))}
                 csvName="expenses-by-kind"
@@ -90,18 +89,7 @@ export default function ExpenseGraphs() {
               </ChartCard>
 
               <ChartCard
-                title="Cost types, month by month"
-                legend={catSeries}
-                columns={[{ key: 'label', label: 'Month' }, ...cats.map((c) => money(c, c)), money('expenses', 'Total')]}
-                rows={months}
-                csvName="expenses-kind-by-month"
-              >
-                <BarsChart data={months} series={catSeries} stacked onPick={(b) => pick(yrLabel(b), b)} height={300} />
-              </ChartCard>
-
-              <ChartCard
                 title="Seasons compared, year by year"
-                sub="Expenses in each season, every year side by side. Darker means a more recent year."
                 legend={sy.years.map((y) => ({ name: String(y), color: yearColor(sy.years, y, COLORS.yearsExp) }))}
                 columns={[{ key: 'label', label: 'Season' }, ...sy.years.map((y) => money(String(y), String(y)))]}
                 rows={sy.seasons.map((s) => ({ label: s, ...Object.fromEntries(sy.years.map((y) => [String(y), sy.cell(s, y).expenses])) }))}
@@ -116,18 +104,7 @@ export default function ExpenseGraphs() {
               </ChartCard>
 
               <ChartCard
-                title="Labour cost"
-                sub="Staff wages worked out from attendance, by month."
-                columns={[{ key: 'label', label: 'Month' }, money('Labour', 'Labour cost')]}
-                rows={months}
-                csvName="labour-cost-by-month"
-              >
-                <BarsChart data={months} series={[{ key: 'Labour', name: 'Labour', color: COLORS.cats.Labour }]} onPick={(b) => pick(yrLabel(b), b)} />
-              </ChartCard>
-
-              <ChartCard
                 title="Revenue, expenses and profit"
-                sub="Profit is revenue minus expenses, month by month."
                 legend={[{ name: 'Revenue', color: COLORS.revenue }, { name: 'Expenses', color: COLORS.expenses }, { name: 'Profit', color: COLORS.profit }]}
                 columns={[{ key: 'label', label: 'Month' }, money('total', 'Revenue'), money('expenses', 'Expenses'), money('profit', 'Profit'), { key: 'margin', label: 'Margin', fmt: (v) => (v === null ? 'n/a' : `${v}%`), csv: (v) => (v === null ? '' : v) }]}
                 rows={months.map((m) => ({ ...m, margin: m.total > 0 ? Math.round((m.profit / m.total) * 100) : null }))}
@@ -137,15 +114,6 @@ export default function ExpenseGraphs() {
                 <BarsAndLine data={profitMonths} bars={[{ key: 'total', name: 'Revenue', color: COLORS.revenue }, { key: 'expenses', name: 'Expenses', color: COLORS.expenses }]} line={{ key: 'profit', name: 'Profit', color: COLORS.profit }} />
               </ChartCard>
 
-              <ChartCard
-                title="Average expense per event"
-                sub="Event expenses divided by number of events, for each year. Garden costs are not part of any one event, so they are left out here."
-                columns={[{ key: 'label', label: 'Year' }, money('avgExpense', 'Average expense'), { key: 'events', label: 'Events' }]}
-                rows={perYear}
-                csvName="average-expense-per-event"
-              >
-                <BarsChart data={perYear} series={[{ key: 'avgExpense', name: 'Average expense', color: COLORS.expenses }]} />
-              </ChartCard>
             </div>
           </div>
           <DrillPanel drill={drill} onClose={() => setDrill(null)} mode="expenses" />
