@@ -658,3 +658,39 @@ tr.sep-past td { font: 600 12px var(--font-body); letter-spacing: 0.08em; text-t
 .splash .pw-petals { transform-box: view-box; transform-origin: 50% 50%; animation: pw-turn 2.4s cubic-bezier(.5, 0, .3, 1) infinite; }
 @keyframes pw-turn { 0% { transform: rotate(0deg) scale(.92); } 60% { transform: rotate(300deg) scale(1.04); } 100% { transform: rotate(360deg) scale(.92); } }
 @media (prefers-reduced-motion: reduce) { .splash .pw-petals { animation: none; } }
+
+/* Loading screen, step by step: petals pop in one after another, then the flower turns slowly */
+.splash .pw-petals { animation: pw-turn 7s linear 1s infinite; }
+.splash .pw-p { transform-box: view-box; transform-origin: 256px 256px; animation: pw-pop .55s cubic-bezier(.2, .9, .3, 1.25) both; animation-delay: calc(var(--i) * 0.1s + 0.1s); }
+.splash .pw-hub { transform-box: view-box; transform-origin: 256px 256px; animation: pw-pop .4s ease-out .75s both; }
+@keyframes pw-pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes pw-turn { to { transform: rotate(360deg); } }
+.splash-name { animation: splash-up .6s ease-out .7s both; }
+.splash-label { animation: splash-up .6s ease-out .95s both; }
+@keyframes splash-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* the app fades in once it is ready */
+.app { animation: app-in .4s ease-out both; }
+@keyframes app-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .splash .pw-petals, .splash .pw-p, .splash .pw-hub, .splash-name, .splash-label, .app { animation: none; } }
+
+/* Moving around: pages slide in, taps give feedback */
+.page-enter { animation: page-in .3s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes page-in { from { opacity: 0; transform: translate3d(var(--slide, 0px), var(--rise, 10px), 0); } to { opacity: 1; transform: none; } }
+.btn, .bottom-nav a, .bottom-nav button, .chip, .seg button { transition: transform .12s ease, background-color .15s ease, box-shadow .15s ease, color .15s ease; }
+.btn:active:not(:disabled) { transform: scale(0.96); }
+.bottom-nav a:active, .bottom-nav button:active { transform: scale(0.92); }
+tr.click { transition: background-color .12s ease; }
+tr.click:active, .list-row:active { background: var(--green-soft); }
+.card { transition: box-shadow .2s ease, transform .2s ease; }
+@media (hover: hover) { .kpi:hover, .card.hoverable:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(20, 55, 42, 0.12); } }
+.btn.primary { background-image: linear-gradient(135deg, #1f6b4a, #14372a); box-shadow: 0 6px 16px rgba(20, 55, 42, 0.22); }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
+@media (max-width: 860px) {
+  .bottom-nav { background: rgba(255, 253, 249, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top-color: rgba(20, 55, 42, 0.08); }
+  .bottom-nav a { position: relative; }
+  .bottom-nav a.active::before { content: ''; position: absolute; top: 0; left: 50%; width: 28px; height: 3px; margin-left: -14px; border-radius: 0 0 4px 4px; background: linear-gradient(90deg, #FFB02E, #F0488B); animation: tab-in .25s ease-out both; }
+  .bottom-nav a.active svg { animation: tab-pop .35s cubic-bezier(.3, 1.6, .5, 1) both; }
+}
+@keyframes tab-in { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes tab-pop { 0% { transform: scale(.8); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .page-enter, .bottom-nav a.active::before, .bottom-nav a.active svg { animation: none; } .btn:active, .bottom-nav a:active { transform: none; } }

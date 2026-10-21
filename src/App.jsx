@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from './store.jsx';
 import { Empty, Icon } from './components/ui.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -102,7 +102,44 @@ export default function App() {
     : MANAGER_NAV;
   const tabs = isOwner ? OWNER_TABS : MANAGER_TABS;
 
+  const nav = useNavigate();
+  // Which way the page slides in: along the order of the bottom tabs, otherwise just a soft rise.
+  const prevPath = useRef(pathname);
+  const [slide, setSlide] = useState(0);
+  const tabPaths = tabs.map((t) => t[0]);
+  useEffect(() => {
+    const a = tabPaths.indexOf(prevPath.current);
+    const b = tabPaths.indexOf(pathname);
+    setSlide(a >= 0 && b >= 0 && a !== b ? Math.sign(b - a) : 0);
+    prevPath.current = pathname;
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => { setMenu(false); window.scrollTo(0, 0); }, [pathname]);
+
+  // Phone: swipe sideways to move between the bottom tabs (and swipe right to leave an event).
+  const touch = useRef(null);
+  const swipeStart = (e) => {
+    if (menu || e.touches.length !== 1 || window.innerWidth > 860) { touch.current = null; return; }
+    let el = e.target;
+    while (el && el !== e.currentTarget) {
+      if (/^(INPUT|TEXTAREA|SELECT|CANVAS)$/.test(el.tagName) || el.dataset?.noswipe !== undefined || el.classList?.contains('cal') || el.classList?.contains('ev-filters')) { touch.current = null; return; }
+      if (el.scrollWidth > el.clientWidth + 4 && /(auto|scroll)/.test(getComputedStyle(el).overflowX)) { touch.current = null; return; }
+      el = el.parentElement;
+    }
+    touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const swipeEnd = (e) => {
+    const t = touch.current; touch.current = null;
+    if (!t || !e.changedTouches.length) return;
+    const dx = e.changedTouches[0].clientX - t.x;
+    const dy = e.changedTouches[0].clientY - t.y;
+    if (Math.abs(dx) < 70 || Math.abs(dy) > 50 || Math.abs(dx) < Math.abs(dy) * 2) return;
+    const i = tabPaths.indexOf(pathname);
+    if (i >= 0) {
+      const next = tabPaths[i + (dx < 0 ? 1 : -1)];
+      if (next) nav(next);
+    } else if (pathname.startsWith('/events/') && dx > 0) nav(-1);
+  };
   useEffect(() => {
     if (!menu) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') setMenu(false); };
@@ -132,7 +169,7 @@ export default function App() {
         {foot}
       </aside>
 
-      <div className="main">
+      <div className="main" onTouchStart={swipeStart} onTouchEnd={swipeEnd}>
         <header className="topbar">
           <button className="btn menu-btn" onClick={() => setMenu(true)} aria-label="Open menu" aria-expanded={menu}>
             <Icon name="menu" />
@@ -151,7 +188,7 @@ export default function App() {
           {!canSwitchRole && signOut && <button className="btn small" onClick={signOut}>Sign out</button>}
         </header>
 
-        <main className="page" id="content">
+        <main className="page page-enter" id="content" key={pathname} style={{ '--slide': `${slide * 28}px` }}>
           <Routes>
             <Route path="/" element={<OwnerOnly><Dashboard /></OwnerOnly>} />
             <Route path="/calendar" element={<Calendar />} />
