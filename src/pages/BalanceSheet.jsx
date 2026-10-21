@@ -58,7 +58,7 @@ export default function BalanceSheet() {
       </PageHead>
 
       <div className="card" style={{ padding: '12px 16px', marginBottom: 16 }}>
-        <div className="row">
+        <div className="row fbar">
           <label className="small muted" htmlFor="b-kind">Period</label>
           <select id="b-kind" value={kind} onChange={(e) => setKind(e.target.value)} style={{ width: 'auto' }}>
             <option value="fy">Financial year (April to March)</option>

@@ -112,7 +112,7 @@ export default function Events() {
                   else if (newGroup && prev !== null) out.push(<tr className="sep-row" key={`g${d}`}><td colSpan={isOwner ? 6 : 4}>{newYear ? <span className="sep-year">{d.slice(0, 4)}</span> : null}</td></tr>);
                   else if (newYear) out.push(<tr className="sep-row" key={`y${d}`}><td colSpan={isOwner ? 6 : 4}><span className="sep-year">{d.slice(0, 4)}</span></td></tr>);
                   out.push(
-                    <tr key={r.id} className="click" tabIndex={0} onClick={() => nav(`/events/${r.id}`)} onKeyDown={(e) => e.key === 'Enter' && nav(`/events/${r.id}`)}>
+                    <tr key={r.id} className="click" data-due={r.counted && r.pending > 0 ? '1' : undefined} tabIndex={0} onClick={() => nav(`/events/${r.id}`)} onKeyDown={(e) => e.key === 'Enter' && nav(`/events/${r.id}`)}>
                       <td className="num e-date" style={{ whiteSpace: 'nowrap' }}>
                         <span className="d-full">{fmtDate(d)}</span>
                         <span className="d-card" aria-hidden="true"><b>{Number(d.slice(8))}</b><i>{MONTHS[Number(d.slice(5, 7)) - 1]} {d.slice(2, 4) === today.slice(2, 4) ? '' : d.slice(0, 4)}</i><em>{WEEKDAYS[weekday(d)]}</em></span>

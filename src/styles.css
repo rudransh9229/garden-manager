@@ -694,3 +694,39 @@ tr.click:active, .list-row:active { background: var(--green-soft); }
 @keyframes tab-in { from { transform: scaleX(0); } to { transform: none; } }
 @keyframes tab-pop { 0% { transform: scale(.8); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .page-enter, .bottom-nav a.active::before, .bottom-nav a.active svg { animation: none; } .btn:active, .bottom-nav a:active { transform: none; } }
+
+/* Events on a phone, compact: two short lines per booking */
+@media (max-width: 560px) {
+  table.events-sm tbody tr:not(.sep-row) { grid-template-columns: 46px minmax(0, 1fr) auto; grid-template-areas: "date who stat" "date type amt"; gap: 1px 10px; align-items: center; padding: 8px 2px; }
+  table.events-sm .e-who .small { display: none; }
+  table.events-sm .e-who > div:first-child { font-size: 15px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  table.events-sm .d-card { padding: 4px 0; border-radius: 10px; }
+  table.events-sm .d-card b { font-size: 18px; }
+  table.events-sm .d-card i { font-size: 12px; }
+  table.events-sm .d-card em { display: none; }
+  table.events-sm .e-stat .pill { font-size: 12px; padding: 2px 8px; }
+  table.events-sm .e-type { font-size: 12.5px; }
+  table.events-sm tr[data-due] .e-amt { display: none; }
+  table.events-sm tr:not([data-due]) .e-bal { display: none; }
+  table.events-sm .e-bal, table.events-sm .e-amt { grid-area: amt; font-size: 13px; justify-self: end; font-weight: 600; }
+  table.events-sm .e-amt { color: var(--ink-2); font-weight: 500; }
+  tr.sep-row td { padding-top: 8px; }
+}
+
+/* Never let the phone zoom in by itself: iOS zooms into any field whose text is under 16px */
+@media (max-width: 860px), (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; }
+}
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
+
+/* Colour: the logo's marigold-to-pink runs through the app */
+body { background: radial-gradient(900px 360px at 92% -100px, rgba(255, 176, 46, 0.16), transparent 65%), radial-gradient(780px 340px at 4% -60px, rgba(240, 72, 139, 0.07), transparent 65%), var(--page); background-attachment: fixed; }
+.nav a { position: relative; }
+.nav a.active { border-left-color: transparent; }
+.nav a.active::before { content: ''; position: absolute; left: -3px; top: 6px; bottom: 6px; width: 3px; border-radius: 3px; background: linear-gradient(180deg, #FFB02E, #F0488B); }
+@media (min-width: 861px) {
+  .page-head h1::after { content: ''; display: block; width: 34px; height: 4px; border-radius: 4px; margin-top: 8px; background: linear-gradient(90deg, #FFB02E, #F0488B); }
+}
+.kpi.dark, .grid > .kpi:first-child { background-image: radial-gradient(260px 160px at 100% 0, rgba(255, 176, 46, 0.22), transparent 70%); }
+.segmented button[aria-pressed="true"], .seg button[aria-pressed="true"] { background-image: linear-gradient(135deg, #1f6b4a, #14372a); }
+::selection { background: rgba(255, 176, 46, 0.35); }
