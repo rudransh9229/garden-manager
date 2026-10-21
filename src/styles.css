@@ -650,3 +650,11 @@ tr.sep-past td { font: 600 12px var(--font-body); letter-spacing: 0.08em; text-t
   .card .row:has(> .field) > .field input { min-width: 0 !important; }
   .card .row:has(> .field) > .btn { margin: 0 0 12px !important; align-self: flex-start; }
 }
+
+/* Loading screen: the pinwheel itself turns */
+.splash-ring { width: 92px; height: 92px; background: none !important; box-shadow: none !important; border-radius: 26px; animation: none; }
+.splash-ring::after { display: none; }
+.splash-ring svg { animation: none; filter: drop-shadow(0 8px 18px rgba(11, 38, 28, 0.28)); }
+.splash .pw-petals { transform-box: view-box; transform-origin: 50% 50%; animation: pw-turn 2.4s cubic-bezier(.5, 0, .3, 1) infinite; }
+@keyframes pw-turn { 0% { transform: rotate(0deg) scale(.92); } 60% { transform: rotate(300deg) scale(1.04); } 100% { transform: rotate(360deg) scale(.92); } }
+@media (prefers-reduced-motion: reduce) { .splash .pw-petals { animation: none; } }

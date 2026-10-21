@@ -112,7 +112,7 @@ export default function App() {
 
   const brand = (
     <div className="brand">
-      <Logo size={42} tile="#24694b" />
+      <Logo size={44} />
       <div className="brand-text"><span>{state.settings.gardenName}</span><small>Garden Manager</small></div>
     </div>
   );
