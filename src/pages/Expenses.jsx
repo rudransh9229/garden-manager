@@ -88,7 +88,7 @@ export default function Expenses() {
       </div>
 
       <div className="card" style={{ padding: '12px 16px', marginBottom: 16 }}>
-        <div className="row">
+        <div className="row fbar">
           <label className="small muted" htmlFor="x-year">Year</label>
           <select id="x-year" value={year} onChange={(e) => setYear(e.target.value === 'all' ? 'all' : Number(e.target.value))} style={{ width: 'auto' }}>
             <option value="all">All years</option>
@@ -139,7 +139,7 @@ export default function Expenses() {
           <section className="card" aria-label="Spending by category">
             <div className="card-head"><div><h2>By category</h2></div><Link className="btn small" to="/expenses">Expense graphs</Link></div>
             {byCat.length === 0 ? <p className="muted small">Nothing to show.</p> : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '14px 24px' }}>
+              <div className="catlist" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '14px 24px' }}>
                 {byCat.map((c) => (
                   <div key={c.name}>
                     <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>

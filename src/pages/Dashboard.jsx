@@ -75,8 +75,8 @@ export default function Dashboard() {
           </div>
 
           <div className="grid cols-2" style={{ alignItems: 'start' }}>
-            <section className="card">
-              <div className="card-head"><h2>Coming up, next 30 days</h2><Link to="/calendar" className="small">Open calendar</Link></div>
+            <section className="card dash-up">
+              <div className="card-head"><h2>Next 30 days</h2><Link to="/calendar" className="small">Open calendar</Link></div>
               {upcoming.length === 0 ? (
                 <p className="muted">No events in the next 30 days.</p>
               ) : (
@@ -102,7 +102,7 @@ export default function Dashboard() {
               )}
             </section>
 
-            <section className="card">
+            <section className="card dash-dues">
               <div className="card-head">
                 <h2>Dues on past events</h2>
                 {dues.length > 0 && <span className="small muted">{inr(duesTotal)} across {plural(dues.length, 'event')}</span>}
@@ -127,7 +127,7 @@ export default function Dashboard() {
             </section>
           </div>
 
-          <ChartCard
+          <div className="dash-chart"><ChartCard
             title={`Revenue by month, ${y}`}
             legend={[{ name: 'Event revenue', color: COLORS.revenue }, { name: 'Cancellation income', color: COLORS.cancel }]}
             columns={[{ key: 'label', label: 'Month' }, money('revenue', 'Event revenue'), money('cancel', 'Cancellation income'), money('total', 'Total')]}
@@ -135,9 +135,9 @@ export default function Dashboard() {
             csvName={`revenue-${y}`}
           >
             <BarsChart data={stats.months} series={[{ key: 'revenue', name: 'Event revenue', color: COLORS.revenue }, { key: 'cancel', name: 'Cancellation income', color: COLORS.cancel }]} stacked height={250} />
-          </ChartCard>
+          </ChartCard></div>
 
-          <section className="card">
+          <section className="card dash-pay">
             <div className="card-head"><h2>Latest payments</h2></div>
             {recent.length === 0 ? <p className="muted">No payments recorded yet.</p> : (
               <div className="list">

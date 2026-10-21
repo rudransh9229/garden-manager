@@ -730,3 +730,25 @@ body { background: radial-gradient(900px 360px at 92% -100px, rgba(255, 176, 46,
 .kpi.dark, .grid > .kpi:first-child { background-image: radial-gradient(260px 160px at 100% 0, rgba(255, 176, 46, 0.22), transparent 70%); }
 .segmented button[aria-pressed="true"], .seg button[aria-pressed="true"] { background-image: linear-gradient(135deg, #1f6b4a, #14372a); }
 ::selection { background: rgba(255, 176, 46, 0.35); }
+
+/* Phone: shorter Dashboard, Expenses and event page */
+@media (max-width: 560px) {
+  .dash-up .list-row:nth-child(n+5), .dash-dues .list-row:nth-child(n+4), .dash-pay .list-row:nth-child(n+4) { display: none; }
+  .dash-chart { display: none; }
+  .stack { gap: 12px; }
+  .kpi { padding: 12px 14px; }
+  .kpi .value { font-size: 21px; }
+  .kpi .sub { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-head { margin-bottom: 8px; }
+  .fbar > input[type=search] { grid-column: 1 / -1; min-width: 0 !important; }
+  .catlist > div:nth-child(n+5) { display: none; }
+  .catlist { gap: 10px !important; }
+  /* expense rows: three short lines */
+  table.cards-sm tbody tr { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "cat amt" "who for" "date act"; gap: 1px 10px; padding: 9px 4px; align-items: center; }
+  table.cards-sm .c-who { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  table.cards-sm .c-who .small { display: inline; margin-left: 6px; }
+  table.cards-sm .c-for { justify-self: end; text-align: right; }
+  table.cards-sm .c-for:not(:has(a)):not(:has(span)) { display: block; }
+  table.cards-sm .c-act { margin-top: 0; justify-content: flex-end; }
+  table.cards-sm .c-act .btn { flex: none; padding: 5px 12px; min-height: 34px; }
+}

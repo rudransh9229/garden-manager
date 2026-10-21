@@ -186,6 +186,7 @@ export default function EventDetail() {
 function PaymentsCard({ id, payments, total }) {
   const { dispatch, act, notify, today } = useStore();
   const [f, setF] = useState({ amount: '', date: today, mode: 'UPI', note: '' });
+  const [show, setShow] = useState(() => typeof window === 'undefined' || window.innerWidth > 860);
   const [touched, setTouched] = useState(false);
   const amt = toPaise(f.amount);
   const err = !amt ? 'Enter the amount received.' : !isValidISO(f.date) ? 'Pick a valid date.' : '';
@@ -195,6 +196,7 @@ function PaymentsCard({ id, payments, total }) {
     dispatch({ type: 'addPayment', payment: { bookingId: id, amount: amt, date: f.date, mode: f.mode, note: f.note.trim() } });
     notify(`${inr(amt)} payment added`);
     setF({ amount: '', date: today, mode: f.mode, note: '' });
+    if (window.innerWidth <= 860) setShow(false);
     setTouched(false);
   };
   const received = payments.reduce((s, p) => s + p.amount, 0);
@@ -216,6 +218,7 @@ function PaymentsCard({ id, payments, total }) {
         </div>
       )}
       <hr className="sep" />
+      {!show ? <button className="btn" onClick={() => setShow(true)}>+ Add a payment</button> : (<>
       <div className="form-grid">
         <Field label="Amount received" error={touched && !amt ? err : undefined}><MoneyInput value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} placeholder="0" /></Field>
         <Field label="Date" error={touched && amt && err ? err : undefined}><input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></Field>
@@ -223,6 +226,7 @@ function PaymentsCard({ id, payments, total }) {
         <Field label="Note"><input type="text" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="Optional" /></Field>
       </div>
       <button className="btn primary" onClick={add}>Add payment</button>
+      </>)}
     </section>
   );
 }
@@ -231,6 +235,7 @@ function ExpensesCard({ id, expenses, labour }) {
   const { state, dispatch, act, notify, today } = useStore();
   const cats = expenseCategories(state.settings);
   const [f, setF] = useState({ category: cats[0], amount: '', date: today, note: '' });
+  const [show, setShow] = useState(() => typeof window === 'undefined' || window.innerWidth > 860);
   const [touched, setTouched] = useState(false);
   const amt = toPaise(f.amount);
   const err = !amt ? 'Enter the amount spent.' : !isValidISO(f.date) ? 'Pick a valid date.' : '';
@@ -241,6 +246,7 @@ function ExpensesCard({ id, expenses, labour }) {
     notify(`${inr(amt)} expense added`);
     setF({ ...f, amount: '', note: '' });
     setTouched(false);
+    if (window.innerWidth <= 860) setShow(false);
   };
   const total = expenses.reduce((s, e) => s + e.amount, 0) + labour;
   return (
@@ -261,6 +267,7 @@ function ExpensesCard({ id, expenses, labour }) {
         ))}
       </div>
       <hr className="sep" />
+      {!show ? <button className="btn" onClick={() => setShow(true)}>+ Add an expense</button> : (<>
       <div className="form-grid">
         <Field label="What was it for?"><select value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })}>{(cats.includes(f.category) ? cats : [f.category, ...cats]).map((c) => <option key={c}>{c}</option>)}</select></Field>
         <Field label="Amount spent" error={touched && !amt ? err : undefined}><MoneyInput value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} placeholder="0" /></Field>
@@ -268,6 +275,7 @@ function ExpensesCard({ id, expenses, labour }) {
         <Field label="Note"><input type="text" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="Optional" /></Field>
       </div>
       <button className="btn primary" onClick={add}>Add expense</button>
+      </>)}
     </section>
   );
 }
